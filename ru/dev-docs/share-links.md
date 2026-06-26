@@ -24,8 +24,10 @@ vless://uuid@host:port?params#name?serverDescription=base64
 | Параметр | Поле | Описание |
 |---|---|---|
 | `sni` | SNI | Server Name Indication |
-| `fp` | fingerprint | TLS fingerprint (chrome, firefox, safari, и др.) |
+| `fp` | fingerprint | uTLS fingerprint (значения — ниже) |
 | `alpn` | ALPN | Протоколы через запятую (напр. `h2,http/1.1`) |
+
+**Допустимые значения `fp`** (uTLS из xray-core): `chrome`, `firefox`, `safari`, `ios`, `android`, `edge`, `360`, `qq`, `random` (случайный реальный браузер), `randomized` (рандомизированный с ALPN), `randomizednoalpn`. Также принимаются закреплённые версии: `hellochrome_120/131/133`, `hellofirefox_120/148`, `helloios_13/14`, `helloedge_106`, `hellosafari_26_3`, `hello360_11_0`, `helloqq_11_1`, `hellogolang` (Go-default, без имперсонации), `unsafe`. Пусто/не задано → `chrome`. Значение передаётся в xray как есть.
 
 ### Reality
 

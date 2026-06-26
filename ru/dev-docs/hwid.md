@@ -4,7 +4,7 @@
 
 ## Формат
 
-HWID — hex-строка SHA-256 хеша, производная от аппаратных характеристик устройства с солью `incy_hwid_`.
+HWID — строка в формате UUID (`8-4-4-4-12`, верхний регистр), производная от аппаратных характеристик устройства. Считается SHA-256 хеш от характеристик (с солью `incy_hwid_`), и его hex-дайджест форматируется в UUID. На всех платформах одинаково — 36 символов с дефисами, например `270DD26E-160D-4257-B8AC-654800E12F24`.
 
 ## Генерация по платформам
 
@@ -26,10 +26,10 @@ HWID — hex-строка SHA-256 хеша, производная от аппа
 **Алгоритм:**
 ```
 deviceId = SHA256("androidId|manufacturer|model|brand|device|product|board|hardware")
-hwid = SHA256("incy_hwid_" + deviceId)
+hwid = hashToUuid(SHA256("incy_hwid_" + deviceId))   // hex → UUID 8-4-4-4-12
 ```
 
-**Результат:** 64 символа (hex)
+**Результат:** UUID (36 символов, верхний регистр)
 **Хранение:** EncryptedSharedPreferences (сохраняется при переустановке)
 
 ### Desktop (Linux)
@@ -59,10 +59,10 @@ hwid = SHA256("incy_hwid_" + deviceId)
 **Алгоритм (Linux/Windows):**
 ```
 deviceId = SHA256("machineId|hostname|os|arch|user")
-hwid = SHA256("incy_hwid_" + deviceId)
+hwid = hashToUuid(SHA256("incy_hwid_" + deviceId))   // hex → UUID 8-4-4-4-12
 ```
 
-**Результат:** 64 символа (hex)
+**Результат:** UUID (36 символов, верхний регистр)
 **Хранение:** файл `{configDir}/device_id`
 
 ### iOS
@@ -76,14 +76,14 @@ hwid = SHA256("incy_hwid_" + deviceId)
 
 **Алгоритм:**
 ```
-raw = "{vendorID}-{deviceName}"
-deviceId = первые 16 символов hex-представления
+raw = "incy_hwid_{vendorID}-{deviceName}"
+hwid = hashToUuid(SHA256(raw))   // hex → UUID 8-4-4-4-12
 ```
 
-**Результат:** 16 символов (hex)
+**Результат:** UUID (36 символов, верхний регистр)
 **Хранение:** Keychain (сохраняется даже при удалении приложения)
 
-> iOS использует укороченный формат (16 символов) в отличие от Android/Desktop (64 символа).
+> Формат одинаков на всех платформах — UUID из SHA-256 хеша. `shortHWID` (первые 8 символов) используется только для отображения.
 
 ## Использование
 

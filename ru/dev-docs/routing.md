@@ -123,8 +123,8 @@ incy://routing/onadd/ewogICJOYW1lIjogIlJvc2NvbVZQTiIs...
 
 | Поле | Тип | По умолчанию | Описание |
 |---|---|---|---|
-| `DomesticDNSType` | string | `"DoH"` | Протокол: `DoH`, `DoU` |
-| `DomesticDNSDomain` | string | `"https://dns.google/dns-query"` | Адрес DNS-сервера |
+| `DomesticDNSType` | string | `"DoU"` | Протокол: `DoH`, `DoU` |
+| `DomesticDNSDomain` | string | `""` | Адрес DNS-сервера (по умолчанию пусто — используется `DomesticDNSIP` по UDP) |
 | `DomesticDNSIP` | string | `"8.8.8.8"` | IP DNS-сервера |
 | `DomesticDns` | string | | Альтернативное поле для `DomesticDNSIP` (обратная совместимость) |
 
@@ -159,11 +159,11 @@ incy://routing/onadd/ewogICJOYW1lIjogIlJvc2NvbVZQTiIs...
 
 #### Стратегия маршрутизации
 
-Поле `DomainStrategy` определяет порядок проверки правил:
+Поле `DomainStrategy` определяет порядок проверки правил (по умолчанию `AsIs`):
 
 | Значение | Описание |
 |---|---|
-| `AsIs` | Домены передаются как есть, без DNS-резолва |
+| `AsIs` | Домены передаются как есть, без DNS-резолва (по умолчанию) |
 | `IPIfNonMatch` | Сначала проверка по домену; если не совпало — резолв DNS и проверка по IP-правилам |
 | `IPOnDemand` | Всегда резолвит домены в IP перед проверкой правил |
 

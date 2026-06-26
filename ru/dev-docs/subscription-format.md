@@ -119,6 +119,15 @@ vless://uuid@server2:443?security=tls#Server2
 | `routing` | string | Профиль маршрутизации (base64 или полная ссылка) |
 | `sort-order` | string | Порядок сортировки серверов: `ping`, `name`, `none` |
 | `content-disposition` | string | Fallback для имени подписки (расширения `.txt`, `.yaml` удаляются) |
+| `premium-url` | URL | Ссылка кнопки «Премиум» в карточке подписки |
+| `hide-url` | `1`/`0`/`true`/`false` | Скрыть URL подписки от Share/Copy/QR/backup |
+| `banner-text` | string | Текст баннера (base64). Перебивает панель |
+| `banner-button-text` | string | Текст кнопки баннера |
+| `banner-button-url` | URL | Ссылка кнопки баннера |
+| `banner-bg-color` | hex | Цвет фона баннера (`#RRGGBB`) |
+| `banner-button-color` | hex | Цвет кнопки баннера (`#RRGGBB`) |
+
+> Полное описание `premium-url`, `hide-url` и баннеров (включая условия показа и приоритет «заголовок → панель») — в [Управление приложением](app-management.md).
 
 ### Profile Title
 

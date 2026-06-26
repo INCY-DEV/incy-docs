@@ -77,11 +77,11 @@
 > iOS: `group.llc.itdev.incy/logs/xray.log`
 > Android/Desktop: передаётся через параметр `logFilePath`
 
-### 2. Inbound порты
+### 2. Inbound'ы
 
-- Все `socks` inbound'ы → порт `10808`, listen `127.0.0.1`
-- Все `http` inbound'ы → порт `10809`, listen `127.0.0.1`
-- Если SOCKS inbound отсутствует — добавляется автоматически с настройками sniffing
+- У всех не-internal `socks` / `mixed` / `http` inbound'ов `listen` принудительно ставится в `127.0.0.1` (порт **не** меняется — конфиг должен сам слушать `10808` для SOCKS/mixed и `10809` для HTTP, это точки входа клиента).
+- Если в конфиге нет ни одного socks-подобного inbound'а — добавляется `mixed` inbound на `127.0.0.1:10808` со sniffing.
+- На точечные inbound'ы без своей авторизации клиент «накрашивает» креды, чтобы порт не оставался открытым релеем.
 
 ### 3. Stats
 
