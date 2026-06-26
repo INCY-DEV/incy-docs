@@ -224,7 +224,7 @@ SHA256("example.com") → "a379a6f6eeafb9a55e378c118034e2751e682fab9f2d30ab13d21
 
 ## Лимиты устройств
 
-Premium-провайдеры имеют тарифы с ограничением по количеству устройств. Лимит хранится в поле `maxDevices` документа провайдера в Firestore.
+Premium-провайдеры имеют тарифы с ограничением по количеству устройств. Лимит задаётся полем `maxDevices` провайдера.
 
 ### Как работает
 
@@ -241,7 +241,7 @@ Premium-провайдеры имеют тарифы с ограничением
 - Кастомная тема провайдера не применяется
 - Premium-настройки (фрагментация, fronting и т.д.) не используются
 - VPN продолжает работать в базовом режиме
-- Устройство регистрируется в Firebase (но без premium)
+- Устройство регистрируется (но без premium)
 
 ### Тарифы
 
@@ -264,13 +264,13 @@ Premium-провайдеры имеют тарифы с ограничением
 | --- | --- | --- |
 | `hwid` | string | Аппаратный идентификатор устройства ([подробнее](hwid.md)) |
 | `hwidHash` | string | SHA-256 хеш HWID (для серверной проверки лимитов) |
-| `uid` | string | Firebase anonymous UID |
-| `platform` | string | `"android"`, `"ios"`, `"linux"`, `"windows"` |
+| `uid` | string | Анонимный UID устройства |
+| `platform` | string | `"android"`, `"ios"`, `"linux"`, `"windows"`, `"macos"` |
 | `appVersion` | string | Версия приложения |
 | `osVersion` | string | Версия ОС |
 | `locale` | string | Язык устройства |
 | `subscriptionDomainHash` | string | SHA-256 хеш домена подписки |
-| `fcmToken` | string | Firebase Cloud Messaging токен |
+| `fcmToken` | string | Push-токен для уведомлений (FCM / APNs) |
 | `lastActive` | timestamp | Время последней активности |
 
 > Поле `hwidHash` добавляется при регистрации и используется сервером для проверки лимита устройств без знания исходного HWID.
@@ -299,25 +299,3 @@ Premium-провайдеры имеют тарифы с ограничением
 ## Certificate Pinning
 
 Запросы к Premium API на Android и Desktop защищены certificate pinning (SHA-256 пины TLS-сертификата). Это предотвращает MITM-атаки на канал связи с API.
-
----
-
-## Миграция
-
-### Backfill `hwidHash` для существующих устройств
-
-Для устройств, зарегистрированных до появления поля `hwidHash`, необходимо запустить миграцию:
-
-```http
-POST /api/admin/migrate-hwid-hashes
-Authorization: Bearer <ADMIN_SECRET>
-```
-
-Скрипт вычисляет `SHA256(hwid)` для каждого существующего устройства и записывает в поле `hwidHash`. Без этой миграции лимиты устройств не будут учитывать ранее зарегистрированные устройства.
-
-### Firestore индекс
-
-Для корректной работы проверки лимитов необходим составной индекс:
-
-- **Коллекция:** `devices`
-- **Поля:** `hwidHash` (ASC), `subscriptionDomainHash` (ASC)`

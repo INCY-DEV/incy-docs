@@ -1,0 +1,121 @@
+site_name: INCY Документация для разработчиков
+site_description: Техническая документация по интеграции с приложением INCY
+site_url: https://docs.incy.cc/
+repo_url: https://github.com/INCY-DEV/incy-docs
+repo_name: INCY-DEV/incy-docs
+edit_uri: edit/main/ru/dev-docs/
+
+# Контент лежит в ru/dev-docs/ (а не в стандартном docs/).
+docs_dir: ru/dev-docs
+
+theme:
+  name: material
+  language: ru
+  palette:
+    # Тёмная тема по умолчанию (фирменный near-black + lime акцент).
+    - scheme: slate
+      primary: lime
+      accent: light green
+      toggle:
+        icon: material/weather-night
+        name: Светлая тема
+    - scheme: default
+      primary: lime
+      accent: light green
+      toggle:
+        icon: material/weather-sunny
+        name: Тёмная тема
+  font:
+    text: Montserrat
+    code: Roboto Mono
+  features:
+    # navigation.instant отключён намеренно — i18n-переключатель языка
+    # несовместим с instant-навигацией (ломает контекстную ссылку RU↔EN).
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+      # Unicode-aware slugs — сохраняют кириллицу в anchor-id (как GitBook),
+      # иначе "Баннер подписки" → пустой/латинский id и внутренние
+      # #кириллические ссылки ломаются.
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+
+plugins:
+  - search:
+      lang:
+        - ru
+        - en
+  # RU — язык по умолчанию (файлы без суффикса). EN-копии лежат рядом с
+  # суффиксом .en.md. Переключатель языка появляется в шапке сайта.
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: ru
+          name: Русский
+          default: true
+          build: true
+        - locale: en
+          name: English
+          build: true
+          nav_translations:
+            Главная: Home
+            Подписки и серверы: Subscriptions & servers
+            Формат подписки: Subscription format
+            Параметры share-ссылок: Share-link parameters
+            Полные Xray-конфигурации: Full Xray configs
+            Управление приложением: App management
+            Маршрутизация: Routing
+            Интеграция: Integration
+            Настройки провайдера: Provider settings
+            Пресет-иконки: Icon presets
+            Админ-доступ по HWID: Admin HWID access
+            Push-уведомления провайдера: Provider push notifications
+            Premium и биллинг: Premium & billing
+            Premium биллинг: Premium billing
+            VPN Аукцион: VPN Auction
+            Примеры: Examples
+
+nav:
+  - Главная: README.md
+  - Подписки и серверы:
+      - Формат подписки: subscription-format.md
+      - Параметры share-ссылок: share-links.md
+      - Полные Xray-конфигурации: full-xray-config.md
+      - Управление приложением: app-management.md
+  - Маршрутизация:
+      - Routing: routing.md
+      - Autorouting: autorouting.md
+  - Интеграция:
+      - Deep Links: deep-links.md
+      - HWID: hwid.md
+      - Premium API: premium-api.md
+  - Настройки провайдера:
+      - Пресет-иконки: icon-presets.md
+      - Админ-доступ по HWID: admin-hwids.md
+      - Push-уведомления провайдера: provider-notifications.md
+  - Premium и биллинг:
+      - Premium биллинг: premium-billing.md
+      - VPN Аукцион: auction.md
+  - Примеры: examples.md
