@@ -60,8 +60,8 @@ Each participant can create an ad:
 
 | Field | Limit |
 | --- | --- |
-| Title | up to 100 characters (Premium emoji supported) |
-| Description | up to 200 characters (Premium emoji supported) |
+| Title | up to 100 characters |
+| Description | up to 200 characters |
 | Link | HTTP/HTTPS or t.me/ |
 
 The ad is displayed in the channel upon winning. It can be changed at any time.

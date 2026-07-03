@@ -19,9 +19,11 @@ The application handles links with any registered scheme (`incy://`, etc.). Dire
 
 | Link | Description |
 | --- | --- |
-| `://import/{data}` | Auto-detects the data type (subscription URL, server configuration, multiple URLs) |
+| `://import/{data}` | Auto-detects the data type (subscription URL, server configuration, multiple URLs, raw WireGuard/AmneziaWG `.conf`) |
 | `://add/{url}` | Add a subscription or configuration directly |
 | `://crypt1/{payload}` | Encrypted (obfuscated) variant of `://add/` — see [Encrypted crypt1 links](#encrypted-crypt1-links) below |
+
+`://import/{data}` also accepts a **raw `.conf`** for WireGuard/AmneziaWG (a multi-line INI with `[Interface]`/`[Peer]`). For reliable delivery, base64-encode the `.conf`: `incy://import/{base64-conf}` (plain text is also supported). AmneziaWG is detected by its obfuscation parameters (`Jc`, `S1`–`S4`, `H1`–`H4`, `I1`–`I5`). More on `.conf` — [subscription-format.md](subscription-format.md).
 
 ### Protocol links
 

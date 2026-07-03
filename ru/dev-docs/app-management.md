@@ -167,6 +167,7 @@ vless://uuid@server:443#Server
 | `profile-update-interval` | — | число (часы) | ✅ | Интервал обновления |
 | `subscription-userinfo` | — | `key=value;...` | — | Статистика трафика |
 | `support-url` | — | URL | ✅ | Ссылка на поддержку |
+| `support-email` | — | email | ✅ | Email поддержки — показывает кнопку «Email» в карточке подписки (запасной контакт). Без заголовка кнопка не показывается |
 | `profile-web-page-url` | `homepage` | URL | ✅ | Ссылка на сайт |
 | `announce` | — | текст / `base64:...` | ✅ | Текст объявления |
 | `announce-url` | — | URL | ✅ | Ссылка на объявление |
@@ -193,6 +194,7 @@ vless://uuid@server:443#Server
 | `server-address-resolve-enable` | — | `1` / `0` | — | Предварительный DNS-резолв адреса сервера через DoH |
 | `server-address-resolve-dns-domain` | — | URL | — | URL DoH-сервера |
 | `server-address-resolve-dns-ip` | — | IP | — | IP DoH-сервера (bootstrap) |
+| `no-limit-enabled` | — | `1` / `0` | — | (iOS) Включить память-экономный режим Network Extension — держит фоновый процесс под лимитом iOS 50 МБ, чтобы xhttp-транспорт не убивался системой (VPN не отваливается). Только включает (не выключает ручной выбор пользователя) |
 
 > Все заголовки регистронезависимы (`profile-title` = `Profile-Title`).
 >

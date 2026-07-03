@@ -13,6 +13,7 @@ Description of subscription formats, supported protocols, and HTTP headers.
 | Hysteria2 | `hysteria2://`, `hy2://` | Multi-port support |
 | SOCKS5 | `socks://` | Proxying via SOCKS5 |
 | WireGuard | `wireguard://` | WireGuard tunneling |
+| AmneziaWG | `.conf` in the body | Obfuscated WireGuard (see the "AmneziaWG / WireGuard .conf in the body" section below) |
 
 > The schemes `ssr://`, `tuic://`, `hysteria://` are recognized by the app but **not parsed** — servers with these schemes will be skipped.
 
@@ -81,6 +82,7 @@ vless://uuid@server2:443?security=tls#Server2
 | Pattern | Description |
 |---|---|
 | `://autorouting/onadd/{url}` | Auto-updated routing profile (URL, with `sourceURL`) |
+| `://autorouting/onadd/{base64}` | Inline routing profile (base64) |
 | `://autorouting/add/{url}` | Auto-updated routing profile (URL, with `sourceURL`) |
 | `://routing/onadd/{url}` | One-time profile import by URL (no auto-update) |
 | `://routing/onadd/{base64}` | Static routing profile |
@@ -97,6 +99,33 @@ vless://uuid@server2:443?security=tls#Server2
 Special strings are extracted from the body and do not appear in the server list.
 
 > **Priority:** values from HTTP headers take precedence over values from the body. Inline metadata in the body is used as a fallback when the corresponding header is absent.
+
+### 5. AmneziaWG / WireGuard .conf in the body
+
+The subscription body can be a **raw WireGuard or AmneziaWG `.conf` file** (a multi-line INI with `[Interface]` and `[Peer]` sections). The app recognizes it by the presence of `[Interface]` + `PrivateKey` and routes it to the same parser used for file import / paste. AmneziaWG is detected by its obfuscation parameters (`Jc`, `Jmin`, `Jmax`, `S1`–`S4`, `H1`–`H4`, `I1`–`I5`).
+
+```ini
+[Interface]
+PrivateKey = <base64>
+Address = 10.8.0.2/32
+DNS = 1.1.1.1
+Jc = 4
+Jmin = 40
+Jmax = 70
+S1 = 86
+S2 = 574
+H1 = 1234567890
+
+[Peer]
+PublicKey = <base64>
+PresharedKey = <base64>
+AllowedIPs = 0.0.0.0/0
+Endpoint = server.example.com:51820
+```
+
+The body may be plain text or base64-wrapped. The same payload can be delivered via the deep link `incy://import/{base64-conf}` — see [deep-links.md](deep-links.md).
+
+> A raw `.conf` is parsed as a **single** server entry; the AmneziaWG obfuscation is applied by the engine at connect time (the client stores the `.conf` verbatim).
 
 ---
 

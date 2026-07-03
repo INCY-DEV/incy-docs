@@ -13,6 +13,7 @@
 | Hysteria2 | `hysteria2://`, `hy2://` | Мульти-портовая поддержка |
 | SOCKS5 | `socks://` | Проксирование через SOCKS5 |
 | WireGuard | `wireguard://` | Туннелирование WireGuard |
+| AmneziaWG | `.conf` в теле | Обфусцированный WireGuard (см. раздел «AmneziaWG / WireGuard .conf в теле» ниже) |
 
 > Схемы `ssr://`, `tuic://`, `hysteria://` распознаются приложением, но **не парсятся** — серверы с этими схемами будут пропущены.
 
@@ -81,6 +82,7 @@ vless://uuid@server2:443?security=tls#Server2
 | Паттерн | Описание |
 |---|---|
 | `://autorouting/onadd/{url}` | Автообновляемый профиль маршрутизации (URL, с `sourceURL`) |
+| `://autorouting/onadd/{base64}` | Профиль маршрутизации inline (base64) |
 | `://autorouting/add/{url}` | Автообновляемый профиль маршрутизации (URL, с `sourceURL`) |
 | `://routing/onadd/{url}` | Одноразовый импорт профиля по URL (без автообновления) |
 | `://routing/onadd/{base64}` | Статический профиль маршрутизации |
@@ -97,6 +99,33 @@ vless://uuid@server2:443?security=tls#Server2
 Специальные строки извлекаются из тела и не попадают в список серверов.
 
 > **Приоритет:** значения из HTTP-заголовков имеют приоритет над значениями из тела. Inline-метаданные в теле используются как fallback, если соответствующий заголовок отсутствует.
+
+### 5. AmneziaWG / WireGuard .conf в теле
+
+Тело подписки может быть **сырым `.conf`-файлом** WireGuard или AmneziaWG (многострочный INI с секциями `[Interface]` и `[Peer]`). Приложение распознаёт его по наличию `[Interface]` + `PrivateKey` и роутит в тот же парсер, что файл/«Вставить». AmneziaWG определяется по наличию обфускационных параметров (`Jc`, `Jmin`, `Jmax`, `S1`–`S4`, `H1`–`H4`, `I1`–`I5`).
+
+```ini
+[Interface]
+PrivateKey = <base64>
+Address = 10.8.0.2/32
+DNS = 1.1.1.1
+Jc = 4
+Jmin = 40
+Jmax = 70
+S1 = 86
+S2 = 574
+H1 = 1234567890
+
+[Peer]
+PublicKey = <base64>
+PresharedKey = <base64>
+AllowedIPs = 0.0.0.0/0
+Endpoint = server.example.com:51820
+```
+
+Тело может быть как plain-text, так и base64-обёрнутым. То же самое можно доставить через deep-link `incy://import/{base64-conf}` — см. [deep-links.md](deep-links.md).
+
+> Сырой `.conf` парсится как **одна** серверная запись; обфускация AmneziaWG применяется движком на этапе подключения (клиент хранит `.conf` дословно).
 
 ---
 

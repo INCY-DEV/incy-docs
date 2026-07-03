@@ -167,6 +167,7 @@ vless://uuid@server:443#Server
 | `profile-update-interval` | — | number (hours) | ✅ | Update interval |
 | `subscription-userinfo` | — | `key=value;...` | — | Traffic statistics |
 | `support-url` | — | URL | ✅ | Support link |
+| `support-email` | — | email | ✅ | Support email — shows an "Email" button in the subscription card (fallback contact). Without this header the button is hidden |
 | `profile-web-page-url` | `homepage` | URL | ✅ | Website link |
 | `announce` | — | text / `base64:...` | ✅ | Announcement text |
 | `announce-url` | — | URL | ✅ | Announcement link |
@@ -193,6 +194,7 @@ vless://uuid@server:443#Server
 | `server-address-resolve-enable` | — | `1` / `0` | — | Pre-resolve the server address via DoH |
 | `server-address-resolve-dns-domain` | — | URL | — | DoH server URL |
 | `server-address-resolve-dns-ip` | — | IP | — | DoH server IP (bootstrap) |
+| `no-limit-enabled` | — | `1` / `0` | — | (iOS) Enable the memory-tight Network Extension mode — keeps the background process under the iOS 50 MB cap so xhttp transports aren't killed by the system (the VPN doesn't drop). Enable-only (never overrides the user's manual choice) |
 
 > All headers are case-insensitive (`profile-title` = `Profile-Title`).
 >
