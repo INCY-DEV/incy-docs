@@ -59,8 +59,11 @@ vless://uuid@host:port?params#name?serverDescription=base64
 | `host` | host | Host header |
 | `mode` | xhttpMode | Mode: `auto`, `packet`, `connect` |
 | `extra` | xhttpExtra | Additional data (URL-encoded JSON) |
+| `sit` | xhttpSessionIDTable | Session-ID table size (int, xray 26.x) |
+| `sil` | xhttpSessionIDLength | Session-ID length (int, xray 26.x) |
 
 > `type=splithttp` is automatically normalized to `xhttp`.
+> `sit`/`sil` are also accepted on VLESS and Trojan (not only on the xHTTP transport).
 
 ### Transport (mKCP)
 
@@ -200,6 +203,10 @@ hy2://password@host:port?params#name?serverDescription=base64
 | `obfs-password` | hy2ObfsPassword | Obfuscation password (URL-encoded) |
 | `up` | hy2UpMbps | Upload speed (Mbps) |
 | `down` | hy2DownMbps | Download speed (Mbps) |
+| `mport` | portHopping | Port hopping: list of ports/ranges, e.g. `443,5000-6000` (alias: `ports`) |
+| `mportHopInt` | portHoppingInterval | Port switch interval, seconds (alias: `portHopInt`) |
+
+> The Desktop client does not support port hopping — it uses only the first port.
 
 ### Multi-port format
 

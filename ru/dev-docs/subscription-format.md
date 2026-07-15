@@ -11,9 +11,10 @@
 | Trojan | `trojan://` | Парольная аутентификация |
 | Shadowsocks | `ss://` | SIP002 и современный формат |
 | Hysteria2 | `hysteria2://`, `hy2://` | Мульти-портовая поддержка |
-| SOCKS5 | `socks://` | Проксирование через SOCKS5 |
-| WireGuard | `wireguard://` | Туннелирование WireGuard |
-| AmneziaWG | `.conf` в теле | Обфусцированный WireGuard (см. раздел «AmneziaWG / WireGuard .conf в теле» ниже) |
+| SOCKS5 | `socks://`, `socks5://` | Проксирование через SOCKS5 |
+| HTTP-proxy | `http://user:pass@host:port` | HTTP-прокси (со `@` — иначе строка считается ссылкой на подписку) |
+| WireGuard | `wireguard://`, `wg://` | Туннелирование WireGuard |
+| AmneziaWG | `amneziawg://`, `awg://`, `.conf` в теле | Обфусцированный WireGuard. Одиночный `.conf` или несколько серверов в одной подписке — см. раздел «AmneziaWG / WireGuard .conf в теле» ниже |
 
 > Схемы `ssr://`, `tuic://`, `hysteria://` распознаются приложением, но **не парсятся** — серверы с этими схемами будут пропущены.
 
@@ -42,6 +43,7 @@ vmess://eyJhZGQiOiJzZXJ2ZXIyIn0=
 trojan://password@server3:443#Server3
 socks://user:pass@server4:1080#Server4
 wireguard://secretKey@server5:51820?publickey=KEY&address=10.0.0.2#Server5
+amneziawg://<base64url-conf>#Server6
 ```
 
 ### 3. JSON-форматы
@@ -125,7 +127,39 @@ Endpoint = server.example.com:51820
 
 Тело может быть как plain-text, так и base64-обёрнутым. То же самое можно доставить через deep-link `incy://import/{base64-conf}` — см. [deep-links.md](deep-links.md).
 
-> Сырой `.conf` парсится как **одна** серверная запись; обфускация AmneziaWG применяется движком на этапе подключения (клиент хранит `.conf` дословно).
+> Сырой `.conf` в теле парсится как **одна** серверная запись; обфускация AmneziaWG применяется движком на этапе подключения (клиент хранит `.conf` дословно).
+
+#### Несколько AmneziaWG-серверов в одной подписке
+
+> **Только iOS и Android.** Desktop-клиент AmneziaWG не поддерживает — `.conf` в теле там парсится как обычный WireGuard, а схемы `amneziawg://`/`awg://` и JSON-контейнер игнорируются.
+
+Одиночный `.conf` = один сервер. Чтобы отдать несколько AmneziaWG-локаций одной подпиской, используйте один из двух форматов. В обоих каждый `.conf` кодируется в **url-safe base64** (`-`→`+`, `_`→`/`, паддинг необязателен), а имя сервера берётся из `#`-фрагмента или поля `name`.
+
+**Формат 1 — построчный (`amneziawg://` / `awg://`).** По одной ссылке на строку, можно мешать с `vless://` и другими протоколами в том же теле:
+
+```
+amneziawg://<base64url-conf>#Германия
+awg://<base64url-conf>#Нидерланды
+```
+
+`amneziawg://` — канонический, `awg://` — короткий алиас (эквивалентны). Всё после `#` — отображаемое имя.
+
+**Формат 2 — JSON-контейнер.** Тело — JSON-объект с `type: "amneziawg"`:
+
+```json
+{
+  "type": "amneziawg",
+  "version": 1,
+  "servers": [
+    { "name": "Германия",    "config": "<base64url-conf>" },
+    { "name": "Нидерланды",  "config": "<base64url-conf>" }
+  ]
+}
+```
+
+Каждый элемент `servers[]` → отдельный сервер. `name` необязателен (при отсутствии имя берётся из `# Name=` внутри `.conf` или из хоста `Endpoint`). Поле `version` зарезервировано и сейчас не проверяется.
+
+> **Поведение в обоих форматах:** битая base64-запись **пропускается** — остальные серверы всё равно загружаются (одна плохая локация не ломает всю подписку). Дубликаты по одинаковому `.conf` схлопываются в один сервер. При обновлении подписки серверы добавляются/обновляются/удаляются без задвоения. HTTP-заголовки остаются на уровне подписки (общие для всех серверов).
 
 ---
 
@@ -141,7 +175,9 @@ Endpoint = server.example.com:51820
 | `profile-update-interval` | int | Интервал обновления в часах |
 | `subscription-userinfo` | string | Статистика трафика и срок действия |
 | `support-url` | URL | Ссылка на поддержку |
+| `support-email` | email | Email поддержки — показывает кнопку «Email» в карточке подписки. Без заголовка кнопка не показывается |
 | `profile-web-page-url` | URL | Ссылка на сайт провайдера. Альтернатива: `homepage` |
+| `homepage` | URL | Fallback для `profile-web-page-url` |
 | `announce-url` | URL | Ссылка на объявление |
 | `announce` | string | Текст объявления (до 200 символов). Поддерживает base64 |
 | `autorouting` | URL | URL-источник профиля маршрутизации с автообновлением |
@@ -155,8 +191,23 @@ Endpoint = server.example.com:51820
 | `banner-button-url` | URL | Ссылка кнопки баннера |
 | `banner-bg-color` | hex | Цвет фона баннера (`#RRGGBB`) |
 | `banner-button-color` | hex | Цвет кнопки баннера (`#RRGGBB`) |
+| `fragmentation-enable` | `1`/`0` | TCP-фрагментация |
+| `fragmentation-length` | `min-max` | Диапазон длины фрагмента |
+| `fragmentation-interval` | `min-max` | Диапазон задержки между фрагментами |
+| `fragmentation-packets` | `tlshello` / `1-3` / `all` | На какие пакеты применять |
+| `noises-enable` | `1`/`0` | Отправка шумовых пакетов до handshake |
+| `noises-type` | `rand` / `str` / `hex` | Тип шумового контента |
+| `noises-packet` | string | Payload шума (формат зависит от `type`) |
+| `noises-delay` | `min-max` мс | Диапазон задержки между шумами |
+| `server-address-resolve-enable` | `1`/`0` | Предварительный DNS-резолв адреса сервера через DoH |
+| `server-address-resolve-dns-domain` | URL | URL DoH-сервера |
+| `server-address-resolve-dns-ip` | IP | IP DoH-сервера (bootstrap) |
+| `no-limit-enabled` | `1`/`0` | (iOS) Память-экономный режим Network Extension (держит фоновый процесс под лимитом iOS 50 МБ). Только включает |
+| `per-app-proxy-enable` | `1`/`0` | (только Android) Включить per-app режим |
+| `per-app-proxy-mode` | `bypass` / `proxy` | (только Android) Режим per-app |
+| `per-app-proxy-list` | CSV / URL | (только Android) Список package names |
 
-> Полное описание `premium-url`, `hide-url` и баннеров (включая условия показа и приоритет «заголовок → панель») — в [Управление приложением](app-management.md).
+> Это справочник заголовков подписки. Полное описание каждого (форматы значений, условия показа, приоритет «заголовок → панель», поддержка `#`-фрагмента в теле) — в [Управление приложением](app-management.md), где сводная таблица является авторитетным источником.
 
 ### Profile Title
 
@@ -246,3 +297,9 @@ sort-order: ping
 | `x-device-model` | Модель устройства |
 
 > Все заголовки HTTP регистронезависимы. Сервер может смотреть на `x-hwid` либо `X-HWID` — придут одни и те же байты.
+
+---
+
+## Резервные хосты (fallback)
+
+Если основной хост подписки недоступен (сеть/таймаут/5xx/429), клиент перебирает резервные хосты — тот же путь и токен, меняется только хост. На `404`/`410` (подписка удалена провайдером) перебор не выполняется. Список резервных хостов приходит не через заголовок, а в теле premium-конфига (`settings.fallbackHosts`) — см. [premium-api.md](premium-api.md).

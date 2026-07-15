@@ -88,7 +88,7 @@ For reference — which native icons are rendered on each platform. Adding / cha
 | Key          | Material Icons (Android / Desktop) | SF Symbols (iOS)                               |
 |--------------|------------------------------------|------------------------------------------------|
 | `send`       | `Send`                             | `paperplane.fill`                              |
-| `bot`        | `SmartToy`                         | `apps.iphone`                                  |
+| `bot`        | `SmartToy`                         | `cpu`                                          |
 | `chat`       | `Chat`                             | `bubble.left.fill`                             |
 | `message`    | `Message`                          | `message.fill`                                 |
 | `mail`       | `Email`                            | `envelope.fill`                                |
@@ -96,16 +96,16 @@ For reference — which native icons are rendered on each platform. Adding / cha
 | `bell`       | `Notifications`                    | `bell.fill`                                    |
 | `newspaper`  | `Newspaper`                        | `newspaper.fill`                               |
 | `rss`        | `RssFeed`                          | `dot.radiowaves.left.and.right`                |
-| `broadcast`  | `Podcasts`                         | `antenna.radiowaves.left.and.right`            |
+| `broadcast`  | `Podcasts`                         | `mic.fill`                                     |
 | `help`       | `HelpOutline`                      | `questionmark.circle`                          |
-| `support`    | `SupportAgent`                     | `person.fill.questionmark`                     |
+| `support`    | `SupportAgent`                     | `headphones`                                   |
 | `lifebuoy`   | `MedicalServices`                  | `lifepreserver`                                |
 | `info`       | `Info`                             | `info.circle`                                  |
 | `book`       | `MenuBook`                         | `book.fill`                                    |
 | `crown`      | `EmojiEvents`                      | `crown.fill`                                   |
 | `star`       | `Star`                             | `star.fill`                                    |
 | `gem`        | `Diamond`                          | `diamond.fill`                                 |
-| `rocket`     | `RocketLaunch`                     | `paperplane.fill`                              |
+| `rocket`     | `RocketLaunch`                     | `flame.fill`                                   |
 | `heart`      | `Favorite`                         | `heart.fill`                                   |
 
 ---

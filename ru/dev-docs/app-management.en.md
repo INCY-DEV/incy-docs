@@ -175,7 +175,7 @@ vless://uuid@server:443#Server
 | `routing` | — | base64 / link | ✅ | Static routing profile |
 | `premium-url` | — | URL | — | "Premium" link (in the subscription card, see below) |
 | `banner-text` | — | text / `base64:...` | — | Banner text (overrides the panel, see below) |
-| `banner-button-text` | — | text | — | Banner button text |
+| `banner-button-text` | — | text / `base64:...` | — | Banner button text |
 | `banner-button-url` | — | URL | — | Banner button link |
 | `banner-bg-color` | — | hex (`#RRGGBB`) | — | Banner background color |
 | `banner-button-color` | — | hex (`#RRGGBB`) | — | Banner button color |
@@ -200,7 +200,9 @@ vless://uuid@server:443#Server
 >
 > Body parameters are used as a fallback — HTTP headers always take precedence.
 >
-> All headers with values support the `base64:` prefix for passing UTF-8 data without Latin-1 / non-ASCII issues (applies to `announce`, `profile-title`, `profile-description`, `per-app-proxy-list`).
+> All headers with values support the `base64:` prefix for passing UTF-8 data without Latin-1 / non-ASCII issues (applies to `announce`, `profile-title`, `profile-description`, `per-app-proxy-list`, `banner-text`, `banner-button-text`).
+>
+> ⚠️ **Cyrillic in the banner.** HTTP headers cannot carry non-ASCII directly. To use non-Latin text in the banner or its button, base64-encode it: `banner-text: base64:<base64(UTF-8)>` and `banner-button-text: base64:<base64(UTF-8)>`.
 
 ---
 
@@ -379,12 +381,14 @@ The banner is a prominent strip in the subscription card on the home screen (tex
 
 ### Display Conditions
 
-The banner is shown only when **both** conditions are met:
+The banner is shown when the provider is **premium** (an active premium subscription) **and** at least one of:
 
-1. The provider is **premium** (an active premium subscription).
-2. The banner is **enabled in the premium panel** (`bannerEnabled`).
+1. a **`banner-text`** header arrived in the subscription response (a dynamic banner — e.g. via Remnawave Response Rules, without opening the INCY premium panel); **or**
+2. the banner is **enabled in the premium panel** (`bannerEnabled`).
 
-The headers themselves do NOT enable the banner — that is only done in the panel. The headers only set/override the content.
+So the `banner-text` header alone turns the banner on (as long as the provider is premium) — you don't have to open the panel and set `bannerEnabled`. If `banner-text` is absent, the banner falls back to the old path (panel `bannerEnabled` + panel text).
+
+> Only **premium providers** may push a banner via headers: for non-premium subscriptions the `banner-*` headers are ignored.
 
 ### Priority: Header → Panel
 
@@ -401,14 +405,16 @@ banner-button-color: #38A169
 | Header | Format | Overrides (panel) |
 | --- | --- | --- |
 | `banner-text` | text / `base64:...` | `bannerText` |
-| `banner-button-text` | text | `bannerButtonText` |
+| `banner-button-text` | text / `base64:...` | `bannerButtonText` |
 | `banner-button-url` | URL | `bannerButtonUrl` |
 | `banner-bg-color` | hex `#RRGGBB` | `bannerBgColor` |
 | `banner-button-color` | hex `#RRGGBB` | `bannerButtonColor` |
 
+> Both the text (`banner-text`) and the button text (`banner-button-text`) support `base64:` — for Cyrillic/UTF-8 this is **required** (see the warning above).
+>
 > The button URL is resolved as `premium-url` → `banner-button-url` → panel: the `premium-url` header has the highest priority (historically).
 >
-> If `banner-text` is empty after resolution, the banner is not shown, even when it is enabled in the panel.
+> If the banner text is empty after resolution, the banner is not shown.
 >
 > Supported on iOS, Android, and Desktop.
 

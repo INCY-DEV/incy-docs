@@ -59,8 +59,11 @@ vless://uuid@host:port?params#name?serverDescription=base64
 | `host` | host | Host-заголовок |
 | `mode` | xhttpMode | Режим: `auto`, `packet`, `connect` |
 | `extra` | xhttpExtra | Дополнительные данные (URL-encoded JSON) |
+| `sit` | xhttpSessionIDTable | Размер таблицы session-ID (int, xray 26.x) |
+| `sil` | xhttpSessionIDLength | Длина session-ID (int, xray 26.x) |
 
 > `type=splithttp` автоматически нормализуется в `xhttp`.
+> `sit`/`sil` также принимаются на VLESS и Trojan (не только на xHTTP-транспорте).
 
 ### Transport (mKCP)
 
@@ -200,6 +203,10 @@ hy2://password@host:port?params#name?serverDescription=base64
 | `obfs-password` | hy2ObfsPassword | Пароль обфускации (URL-encoded) |
 | `up` | hy2UpMbps | Скорость загрузки (Mbps) |
 | `down` | hy2DownMbps | Скорость скачивания (Mbps) |
+| `mport` | portHopping | Port hopping: список портов/диапазонов, напр. `443,5000-6000` (алиас: `ports`) |
+| `mportHopInt` | portHoppingInterval | Интервал переключения портов, сек (алиас: `portHopInt`) |
+
+> Desktop-клиент port hopping не поддерживает — использует только первый порт.
 
 ### Мульти-портовый формат
 

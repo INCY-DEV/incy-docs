@@ -132,11 +132,15 @@ For full configurations, **geo file trimming is skipped**. Full configurations s
 
 ### DNS
 
-For full configurations, **DNS servers are not replaced**. Full configurations already contain properly configured DNS with `domains`/`expectIPs` filters, so the app:
+The behavior depends on whether the configuration ships its **own** DNS servers (a non-empty `dns.servers`):
 
-- Does not substitute its own DNS servers
-- Preserves the original DNS records from the configuration
-- Only adds a Direct rule for the DNS servers (to prevent a circular dependency with the observatory)
+- **If `dns.servers` is set** — the app **leaves DNS untouched**. Your records with `domains`/`expectIPs` filters are preserved as-is; the client does not substitute its own DNS servers. This is how most full configurations work (Remnawave, etc.).
+- **If `dns.servers` is empty or absent** — the configuration brings no DNS of its own, so the client injects its own `queryStrategy` (per the IPv4/IPv6/auto setting) and `hosts`; otherwise DNS queries would leak directly (DNS leak).
+
+Regardless of the above:
+
+- The client **narrows** the provided `fakedns` pool to a small subnet, so IPs from a provider's wide fakedns pool aren't routed as real addresses.
+- A Direct rule is added for the DNS servers (prevents a circular dependency with the observatory).
 
 ## Storage
 
