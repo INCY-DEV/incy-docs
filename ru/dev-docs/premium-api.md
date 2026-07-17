@@ -167,7 +167,7 @@ SHA256("example.com") → "a379a6f6eeafb9a55e378c118034e2751e682fab9f2d30ab13d21
 | `defaultPingProtocol` | string? | Тип пинга: `incy`, `tcp`, `proxy_head`, `proxy_get`, `icmp` |
 | `pingTestUrl` | string? | URL для HTTP-пинга (используется при `incy` / `proxy_head` / `proxy_get`) |
 | `defaultSortOrder` | string? | Сортировка серверов: `none`, `ping`, `name` |
-| `defaultPingDisplayFormat` | string? | Вид отображения пинга: `time` (цифры, мс) или `dots` (зелёные точки — ответил/нет) |
+| `defaultPingDisplayFormat` | string? | Вид отображения пинга: `time` (цифры, мс), `bars` (шкала-полоски), `both` (цифры + шкала) или `dots` (зелёные точки — ответил/нет). Режим `dots` поддерживается только на iOS; Android/Desktop показывают `time`/`bars`/`both` |
 | `pingOnUpdate` | boolean? | Авто-пинг всех серверов после обновления подписки |
 
 `incy` — **INCY Ping**: реальный HTTP GET через прокси, но значение делится на ~3.3, чтобы читаться как привычный пинг (а не полный проксированный round-trip). Метод по умолчанию в приложении.

@@ -167,7 +167,7 @@ Applied on the first connection of a subscription and override the app's default
 | `defaultPingProtocol` | string? | Ping type: `incy`, `tcp`, `proxy_head`, `proxy_get`, `icmp` |
 | `pingTestUrl` | string? | URL for HTTP ping (used with `incy` / `proxy_head` / `proxy_get`) |
 | `defaultSortOrder` | string? | Server sorting: `none`, `ping`, `name` |
-| `defaultPingDisplayFormat` | string? | Ping display style: `time` (numbers, ms) or `dots` (green dots — responded/not) |
+| `defaultPingDisplayFormat` | string? | Ping display style: `time` (numbers, ms), `bars` (bar gauge), `both` (numbers + gauge), or `dots` (green dots — responded/not). The `dots` mode is iOS-only; Android/Desktop show `time`/`bars`/`both` |
 | `pingOnUpdate` | boolean? | Auto-ping all servers after a subscription update |
 
 `incy` — **INCY Ping**: a real HTTP GET through the proxy, but the value is divided by ~3.3 so it reads like a familiar ping instead of the full proxied round-trip. The app's default method.

@@ -166,6 +166,7 @@ vless://uuid@server:443#Server
 | `profile-description` | — | text / `base64:...` | — | Subscription description |
 | `profile-update-interval` | — | number (hours) | ✅ | Update interval |
 | `subscription-userinfo` | — | `key=value;...` | — | Traffic statistics |
+| `sort-order` | — | `none` / `ping` / `name` | — | Global server sort order |
 | `support-url` | — | URL | ✅ | Support link |
 | `support-email` | — | email | ✅ | Support email — shows an "Email" button in the subscription card (fallback contact). Without this header the button is hidden |
 | `profile-web-page-url` | `homepage` | URL | ✅ | Website link |
@@ -180,6 +181,7 @@ vless://uuid@server:443#Server
 | `banner-bg-color` | — | hex (`#RRGGBB`) | — | Banner background color |
 | `banner-button-color` | — | hex (`#RRGGBB`) | — | Banner button color |
 | `hide-url` | — | `1` / `0` / `true` / `false` | ✅ | Hide the subscription URL from Share/Copy/QR/backup (see below) |
+| `hide-check` | — | `1` / `0` / `true` / `false` | ✅¹ | Hide the Home "Check" button (see below) |
 | `per-app-proxy-enable` | — | `1` / `0` | — | Enable per-app mode (Android only) |
 | `per-app-proxy-mode` | — | `bypass` / `proxy` | — | Per-app mode |
 | `per-app-proxy-list` | — | CSV / URL | — | List of package names |
@@ -200,7 +202,11 @@ vless://uuid@server:443#Server
 >
 > Body parameters are used as a fallback — HTTP headers always take precedence.
 >
-> All headers with values support the `base64:` prefix for passing UTF-8 data without Latin-1 / non-ASCII issues (applies to `announce`, `profile-title`, `profile-description`, `per-app-proxy-list`, `banner-text`, `banner-button-text`).
+> All headers with values support the `base64:` prefix for passing UTF-8 data without Latin-1 / non-ASCII issues (applies to `announce`, `profile-title`, `profile-description`, `subscription-name`, `per-app-proxy-list`, `banner-text`, `banner-button-text`).
+>
+> Android and Desktop additionally accept gzip chains in values (`base64:gzip:`, `gzip:base64:`, `gzip:`) — handy for long `per-app-proxy-list`. **iOS supports `base64:` only** (no gzip).
+>
+> ¹ `hide-check` works as an HTTP header and via the subscription body (`#hide-check:`), just like `hide-url`, **but** the `#hide-check:` body marker is read only by Android and iOS — Desktop applies `hide-check` via the header and Premium config only.
 >
 > ⚠️ **Cyrillic in the banner.** HTTP headers cannot carry non-ASCII directly. To use non-Latin text in the banner or its button, base64-encode it: `banner-text: base64:<base64(UTF-8)>` and `banner-button-text: base64:<base64(UTF-8)>`.
 
@@ -249,9 +255,9 @@ vless://uuid@server:443#Сервер1?serverDescription=base64-text
 
 ---
 
-## Per-App Proxy (Android only)
+## Per-App Proxy (subscription control — Android only)
 
-The Android VpnService allows routing only **selected apps** through the VPN, or conversely **excluding** them from the tunnel. The provider can force this mode via three headers:
+The Android VpnService allows routing only **selected apps** through the VPN, or conversely **excluding** them from the tunnel. The provider can force this mode from the subscription via three headers (Android only). Desktop has the feature too, but it is user-controlled — see the subsection below.
 
 ```
 per-app-proxy-enable: 1
@@ -293,7 +299,16 @@ The file at the URL is plain text with package names, one per line or comma-sepa
 
 - If none of the three fields is set, the user's settings in the app are **not overridden**.
 - If `per-app-proxy-enable` is set to `0`, per-app mode is disabled even if the user enabled it locally.
-- Platforms other than Android **ignore** these headers.
+- These **headers** are read on Android only (the list uses package names).
+
+### Per-app on Desktop (Windows / macOS / Linux)
+
+The desktop client **also supports** per-app split-tunnel, but **not via these headers** — it is a **user** setting in the app (the "Split-tunneling" screen). A provider cannot set it from the subscription; the user builds the list by executable names/paths, not package names.
+
+Under the hood Desktop does not touch the system firewall — the rule is written straight into xray routing via the `process` field (socket-PID lookup, no sniffing). It works for both regular and **full-config** subscriptions. Windows, macOS and Linux are all supported (the xray core resolves the originating process: `GetExtendedTcpTable` on Windows, `/proc` on Linux, `libproc` on macOS).
+
+!!! note "TUN mode only"
+    Per-app on Desktop works only when **TUN** mode is on (xray owns the TUN device itself and can see the originating process). In System Proxy / Proxy Only modes the process cannot be resolved and per-app is not applied.
 
 ---
 
@@ -487,6 +502,59 @@ vless://...
 | yes | no | — | no | no |
 
 Without `hide-url`, regular (non-premium) subscriptions are always exported and copied — `hide-url` is the **only** way to forbid this for non-premium.
+
+---
+
+## Hiding the "Check" Button
+
+The `hide-check` parameter removes the **"Check"** button (connectivity check while the VPN is active) from the Home screen. It behaves exactly like [`hide-url`](#hiding-the-subscription-url-from-the-user): tri-state (set to "hide" / set to "show" / absent → fallback). The button is shown by default.
+
+Useful for providers whose server answers the check request in a non-standard way (or blocks it), so the button would mislead the user.
+
+**Header:**
+
+```
+hide-check: 1
+```
+
+**In the subscription body** (Android and iOS only — Desktop ignores the body marker):
+
+```
+#hide-check: 1
+vless://...
+```
+
+**JSON subscription body:**
+
+```json
+{ "hide_check": true }
+```
+
+**Premium API (JSON):**
+
+```json
+{
+  "settings": { "hideCheck": true }
+}
+```
+
+### Accepted Values
+
+| Sent value | Behavior |
+| --- | --- |
+| `1`, `true`, `yes` (case-insensitive) | "Check" button hidden |
+| `0`, `false`, `no`, empty string | Button shown (default) |
+| Header absent | Falls back to body / Premium config, otherwise shown |
+
+### Source Priority
+
+1. `hide-check` HTTP header — highest priority
+2. `#hide-check:` marker in the subscription body — fallback (Android/iOS)
+3. `settings.hideCheck` in the Premium API — independent source
+
+### Platforms
+
+Android, iOS and Desktop — all three hide the button. The only difference is the "subscription body" source: Desktop does not read the `#hide-check:` marker (use the header or Premium config).
 
 ---
 
