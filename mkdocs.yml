@@ -96,6 +96,7 @@ plugins:
             Premium биллинг: Premium billing
             VPN Аукцион: VPN Auction
             Примеры: Examples
+            Документация для ИИ (MCP): Docs for AI (MCP)
 
 nav:
   - Главная: README.md
@@ -111,6 +112,7 @@ nav:
       - Deep Links: deep-links.md
       - HWID: hwid.md
       - Premium API: premium-api.md
+      - Документация для ИИ (MCP): ai-mcp.md
   - Настройки провайдера:
       - Пресет-иконки: icon-presets.md
       - Админ-доступ по HWID: admin-hwids.md

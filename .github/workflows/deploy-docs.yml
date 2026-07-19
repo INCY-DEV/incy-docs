@@ -25,6 +25,10 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: mkdocs build --strict --site-dir _site
+      # Generate llms.txt + llms-full.txt for AI tooling (GitMCP, Claude Code,
+      # etc.). Standalone stdlib script — runs after the build so it never
+      # interferes with the mkdocs-static-i18n suffix scheme. Writes into _site.
+      - run: python scripts/gen_llms_txt.py _site
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
