@@ -106,6 +106,18 @@ Special strings are extracted from the body and do not appear in the server list
 
 The subscription body can be a **raw WireGuard or AmneziaWG `.conf` file** (a multi-line INI with `[Interface]` and `[Peer]` sections). The app recognizes it by the presence of `[Interface]` + `PrivateKey` and routes it to the same parser used for file import / paste. AmneziaWG is detected by its obfuscation parameters (`Jc`, `Jmin`, `Jmax`, `S1`–`S4`, `H1`–`H4`, `I1`–`I5`).
 
+The new **AmneziaWG 3.0** parameters are also supported (the engine is updated to amneziawg-go v3). All are optional and forwarded to the engine as-is:
+
+| `.conf` key | Description |
+|---|---|
+| `HeaderProtectionKey` | Packet-header protection key (set server-side; requires `S1`–`S4` ≥ 8) |
+| `ContentPaddingAddition` | Random content-padding range (`uint32` or a `min-max` range) |
+| `RekeyAfterTime` | Time (seconds) after which the client initiates a rehandshake |
+| `RekeyTimeout` | Timeout (seconds) before the handshake is repeated |
+| `RejectAfterTime` | Time (seconds) after which the client forces a rehandshake and rejects incoming data |
+| `KeepaliveTimeout` | Time (seconds) since the last data send before a keepalive is sent |
+| `MaxHandshakeAttempts` | Maximum number of handshake retries |
+
 ```ini
 [Interface]
 PrivateKey = <base64>
@@ -258,7 +270,7 @@ announce: base64:0J7QsdC90L7QstC70LXQvdC40LUg0YHQtdGA0LLQtdGA0L7Qsg==
 
 ### Sort Order
 
-Sets the server sort order in the app. When the subscription is refreshed, the value is applied to the global sort setting.
+Sets the server sort order. On iOS and Android the value applies **to this subscription** (each subscription has its own ping/sort/style settings, like the routing profile); the user can override it in the subscription settings. On Desktop it applies to the global sort setting.
 
 ```
 sort-order: ping

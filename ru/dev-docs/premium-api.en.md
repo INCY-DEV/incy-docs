@@ -139,7 +139,7 @@ Details — [admin-hwids.md](admin-hwids.md).
 
 #### Subscription banner
 
-A red / arbitrary-color banner inside the subscription card. Used for upsell / expiry warnings / announcements.
+An arbitrary-color banner inside the subscription card. Used for announcements and maintenance notices ("maintenance on server N"). Shown to **all** subscribers.
 
 | Field | Type | Description |
 |---|---|---|
@@ -149,6 +149,23 @@ A red / arbitrary-color banner inside the subscription card. Used for upsell / e
 | `bannerButtonUrl` | string? | Button URL |
 | `bannerBgColor` | string? | Banner background color (hex, e.g. `"#E53E3E"`, defaults to red) |
 | `bannerButtonColor` | string? | Button color (hex, defaults to green) |
+
+#### Expiry banner
+
+A separate banner shown **only** to users whose subscription expires in **3 days or less** (the day count is computed on-device from the subscription expiry date). Prompts the user to renew. Its field set is independent from the banner above.
+
+| Field | Type | Description |
+|---|---|---|
+| `expiryBannerEnabled` | boolean | Show the expiry banner |
+| `expiryBannerText` | string? | Banner text |
+| `expiryBannerButtonText` | string? | Button text (if empty — the button is hidden) |
+| `expiryBannerButtonUrl` | string? | Button URL (if unset — the button is not shown) |
+| `expiryBannerBgColor` | string? | Background color (hex, defaults to `"#D97706"`) |
+| `expiryBannerButtonColor` | string? | Button color (hex, defaults to green) |
+
+**Priority:** if the maintenance banner (`bannerEnabled`) is on, **only that one** is shown (to everyone). The expiry banner appears only when `bannerEnabled` is off, `expiryBannerEnabled` is on, and the user's subscription expires within 3 days.
+
+Platforms: iOS, Android, Desktop (incy-linux).
 
 #### Forced settings
 
@@ -160,7 +177,7 @@ Override the user's choice in the app settings while the subscription is active.
 
 #### Ping and sorting
 
-Applied on the first connection of a subscription and override the app's default settings.
+Applied on the first connection of a subscription. On iOS and Android these values are set **per-subscription** (each subscription has its own ping/protocol/sort/style); the user can override them in the subscription settings. On Desktop they override the app's global settings.
 
 | Field | Type | Description |
 |---|---|---|

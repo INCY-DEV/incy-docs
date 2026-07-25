@@ -18,8 +18,11 @@ Routing profiles can be added via:
 |---|---|
 | `incy://routing/add/{base64}` | Adds the profile; activates after geo files are downloaded successfully |
 | `incy://routing/onadd/{base64}` | Adds and immediately activates the profile |
+| `incy://routing/off` | Fully disables built-in routing (no payload) |
 
 > `{base64}` is the JSON profile encoded in base64.
+
+> **`incy://routing/off`** disables built-in routing entirely — equivalent to turning off the routing-profiles toggle in settings: the config is generated with no routing rules. The selected profile is kept (reversible: the provider can re-enable it via `onadd`).
 
 > Backward compatibility: the `://routing/add/` and `://routing/onadd/` links are also supported.
 
@@ -46,6 +49,14 @@ routing: ewogICJOYW1lIjogIlJvc2NvbVZQTiIs...
 ```
 HTTP/2 200
 routing: ://routing/onadd/ewogICJOYW1lIjogIlJvc2NvbVZQTiIs...
+```
+
+**Format 3 — disable routing:**
+
+The value `off` (or the `://routing/off` link) disables built-in routing entirely — the provider turns routing off straight from the subscription response, with no user action:
+```
+HTTP/2 200
+routing: off
 ```
 
 ## Subscription body

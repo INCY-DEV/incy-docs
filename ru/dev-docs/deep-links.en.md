@@ -49,6 +49,7 @@ wireguard://secretKey@server:51820?publickey=KEY&address=10.0.0.2#Server Name
 | `://autorouting/onadd/{url}` | Download the profile from a URL and set up auto-updates |
 | `://autorouting/add/{url}` | Download the profile from a URL and set up auto-updates |
 | `://onadd/{url}` | Short form (one-time import, no auto-updates) |
+| `://routing/off` | Fully disable built-in routing (no payload). Equivalent to turning off the routing-profiles toggle in settings: the config is generated with no routing rules. The selected profile is kept — reversible via `onadd` |
 
 More details: [routing.md](routing.md), [autorouting.md](autorouting.md).
 

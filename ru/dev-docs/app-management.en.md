@@ -166,14 +166,14 @@ vless://uuid@server:443#Server
 | `profile-description` | — | text / `base64:...` | — | Subscription description |
 | `profile-update-interval` | — | number (hours) | ✅ | Update interval |
 | `subscription-userinfo` | — | `key=value;...` | — | Traffic statistics |
-| `sort-order` | — | `none` / `ping` / `name` | — | Global server sort order |
+| `sort-order` | — | `none` / `ping` / `name` | — | Server sort order (per-subscription on iOS/Android; global on Desktop) |
 | `support-url` | — | URL | ✅ | Support link |
 | `support-email` | — | email | ✅ | Support email — shows an "Email" button in the subscription card (fallback contact). Without this header the button is hidden |
 | `profile-web-page-url` | `homepage` | URL | ✅ | Website link |
 | `announce` | — | text / `base64:...` | ✅ | Announcement text |
 | `announce-url` | — | URL | ✅ | Announcement link |
 | `autorouting` | — | URL | ✅ | Auto-updated routing profile |
-| `routing` | — | base64 / link | ✅ | Static routing profile |
+| `routing` | — | base64 / link / `off` | ✅ | Routing profile; the value `off` disables built-in routing |
 | `premium-url` | — | URL | — | "Premium" link (in the subscription card, see below) |
 | `banner-text` | — | text / `base64:...` | — | Banner text (overrides the panel, see below) |
 | `banner-button-text` | — | text / `base64:...` | — | Banner button text |
@@ -220,6 +220,12 @@ A static profile in base64. See [routing.md](routing.md) for details.
 
 ```
 routing: ://routing/onadd/ewog...base64...
+```
+
+The value `off` (or the `://routing/off` link) fully disables built-in routing:
+
+```
+routing: off
 ```
 
 ### Auto-Updated Routing Profile
