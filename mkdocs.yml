@@ -97,6 +97,7 @@ plugins:
             VPN Аукцион: VPN Auction
             Примеры: Examples
             Документация для ИИ (MCP): Docs for AI (MCP)
+            Передача подписки на ТВ: Sending subscription to TV
 
 nav:
   - Главная: README.md
@@ -110,6 +111,7 @@ nav:
       - Autorouting: autorouting.md
   - Интеграция:
       - Deep Links: deep-links.md
+      - Передача подписки на ТВ: tv-relay.md
       - HWID: hwid.md
       - Premium API: premium-api.md
       - Документация для ИИ (MCP): ai-mcp.md
