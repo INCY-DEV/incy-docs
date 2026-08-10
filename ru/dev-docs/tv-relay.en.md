@@ -130,7 +130,7 @@ GET /pair/K7M2XQ4P
 POST /pair/K7M2XQ4P/send
 Content-Type: application/json
 
-{ "yb": "<32 bytes>", "nonce": "<12 bytes>", "ct": "<ciphertext+tag>" }
+{ "yb": "<32 bytes>", "ct": "<nonce+ciphertext+tag>" }
 ```
 
 | Response | Meaning |
@@ -150,7 +150,7 @@ GET /pair/K7M2XQ4P/result
 
 | Response | Meaning |
 |---|---|
-| `200` | `{ "yb": …, "nonce": …, "ct": … }`, record deleted immediately |
+| `200` | `{ "yb": …, "ct": … }`, record deleted immediately |
 | `204` | nothing yet — repeat the request |
 | `404` | code expired |
 
@@ -165,13 +165,16 @@ GET /pair/K7M2XQ4P/result
 | What | Limit |
 |---|---|
 | Attempts per code | 5, then the code is destroyed |
-| Requests per IP | 30 per minute |
-| Code creation per IP | 10 per hour |
+| Requests per IP | 300 per minute |
 | Body size | 64 KiB |
 | Code lifetime | 5 minutes |
 
 The per-code limit matters more than the per-IP one: switching addresses does
 not help, which is what makes brute force pointless.
+
+There is no separate limit on code creation: hundreds of devices may share one
+external address (carrier CGNAT, a dormitory), and an hourly cap would cut off
+some users.
 
 ---
 
@@ -187,6 +190,10 @@ Inside the ciphertext — JSON:
   "name": "My Provider"
 }
 ```
+
+The `ct` field is `nonce ‖ ciphertext ‖ tag` in one piece — the `combined`
+layout from CryptoKit, which libsodium reads directly. There is no separate
+`nonce` field.
 
 Send the **subscription link, not an expanded config**: the TV will fetch it
 itself and get the current server list. That is orders of magnitude smaller and
@@ -286,11 +293,12 @@ def send_subscription(code: str, url: str, name: str) -> None:
         {"v": 1, "type": "subscription", "url": url, "name": name}
     ).encode()
     nonce = secrets.token_bytes(12)
-    ct = ChaCha20Poly1305(key).encrypt(nonce, payload, None)
+    # nonce идёт первыми 12 байтами ct — отдельного поля нет.
+    ct = nonce + ChaCha20Poly1305(key).encrypt(nonce, payload, None)
 
     resp = httpx.post(
         f"{BASE}/pair/{code}/send",
-        json={"yb": b64e(yb), "nonce": b64e(nonce), "ct": b64e(ct)},
+        json={"yb": b64e(yb), "ct": b64e(ct)},
         timeout=10,
     )
     if resp.status_code == 409:
@@ -345,12 +353,15 @@ export async function sendSubscription(code, url, name) {
   ));
   const nonce = randomBytes(12);
   const cipher = createCipheriv('chacha20-poly1305', key, nonce, { authTagLength: 16 });
-  const ct = Buffer.concat([cipher.update(payload), cipher.final(), cipher.getAuthTag()]);
+  // nonce первыми 12 байтами ct — отдельного поля нет.
+  const ct = Buffer.concat([
+    nonce, cipher.update(payload), cipher.final(), cipher.getAuthTag(),
+  ]);
 
   const resp = await fetch(`${BASE}/pair/${code}/send`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ yb: b64e(yb), nonce: b64e(nonce), ct: b64e(ct) }),
+    body: JSON.stringify({ yb: b64e(yb), ct: b64e(ct) }),
   });
   if (resp.status === 409) throw new Error('already sent to this code');
   if (!resp.ok) throw new Error(`relay returned ${resp.status}`);

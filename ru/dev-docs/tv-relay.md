@@ -131,7 +131,7 @@ GET /pair/K7M2XQ4P
 POST /pair/K7M2XQ4P/send
 Content-Type: application/json
 
-{ "yb": "<32 байта>", "nonce": "<12 байт>", "ct": "<шифротекст+тег>" }
+{ "yb": "<32 байта>", "ct": "<nonce+шифротекст+тег>" }
 ```
 
 | Ответ | Значение |
@@ -151,7 +151,7 @@ GET /pair/K7M2XQ4P/result
 
 | Ответ | Значение |
 |---|---|
-| `200` | `{ "yb": …, "nonce": …, "ct": … }`, запись сразу удаляется |
+| `200` | `{ "yb": …, "ct": … }`, запись сразу удаляется |
 | `204` | пока ничего — повторить запрос |
 | `404` | код истёк |
 
@@ -166,13 +166,16 @@ GET /pair/K7M2XQ4P/result
 | Что | Лимит |
 |---|---|
 | Попыток на один код | 5, дальше код уничтожается |
-| Запросов с одного IP | 30 в минуту |
-| Создание кодов с одного IP | 10 в час |
+| Запросов с одного IP | 300 в минуту |
 | Размер тела | 64 КиБ |
 | Время жизни кода | 5 минут |
 
 Лимит на код важнее лимита на IP: смена адреса от него не спасает, поэтому
 перебор бессмыслен.
+
+Отдельного лимита на создание кодов нет: за одним внешним адресом (CGNAT
+оператора, общежитие) могут быть сотни устройств, и почасовой лимит отрезал
+бы часть пользователей.
 
 ---
 
@@ -188,6 +191,9 @@ GET /pair/K7M2XQ4P/result
   "name": "Мой провайдер"
 }
 ```
+
+Поле `ct` — это `nonce ‖ шифротекст ‖ тег` одним куском: раскладка `combined`
+у CryptoKit, которую libsodium понимает напрямую. Отдельного поля `nonce` нет.
 
 Передавайте **ссылку на подписку, а не развёрнутый конфиг**: телевизор сам её
 загрузит и получит актуальный список серверов. Так объём на порядки меньше, и
@@ -287,11 +293,12 @@ def send_subscription(code: str, url: str, name: str) -> None:
         {"v": 1, "type": "subscription", "url": url, "name": name}
     ).encode()
     nonce = secrets.token_bytes(12)
-    ct = ChaCha20Poly1305(key).encrypt(nonce, payload, None)
+    # nonce идёт первыми 12 байтами ct — отдельного поля нет.
+    ct = nonce + ChaCha20Poly1305(key).encrypt(nonce, payload, None)
 
     resp = httpx.post(
         f"{BASE}/pair/{code}/send",
-        json={"yb": b64e(yb), "nonce": b64e(nonce), "ct": b64e(ct)},
+        json={"yb": b64e(yb), "ct": b64e(ct)},
         timeout=10,
     )
     if resp.status_code == 409:
@@ -346,12 +353,15 @@ export async function sendSubscription(code, url, name) {
   ));
   const nonce = randomBytes(12);
   const cipher = createCipheriv('chacha20-poly1305', key, nonce, { authTagLength: 16 });
-  const ct = Buffer.concat([cipher.update(payload), cipher.final(), cipher.getAuthTag()]);
+  // nonce первыми 12 байтами ct — отдельного поля нет.
+  const ct = Buffer.concat([
+    nonce, cipher.update(payload), cipher.final(), cipher.getAuthTag(),
+  ]);
 
   const resp = await fetch(`${BASE}/pair/${code}/send`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ yb: b64e(yb), nonce: b64e(nonce), ct: b64e(ct) }),
+    body: JSON.stringify({ yb: b64e(yb), ct: b64e(ct) }),
   });
   if (resp.status === 409) throw new Error('на этот код уже отправляли');
   if (!resp.ok) throw new Error(`релей вернул ${resp.status}`);
