@@ -211,11 +211,11 @@ Full geoip/geosite files weigh tens of megabytes. If a profile uses only a limit
 
 | Field            | Type     | Description                                                                                                            |
 |-----------------|---------|---------------------------------------------------------------------------------------------------------------------|
-| `useChunkFiles` | boolean | If `true` — the client calls the internal `CutGeoData()` after downloading and keeps only the tags referenced in the rules |
+| `UseChunkFiles` | boolean | If `true` — the client calls the internal `CutGeoData()` after downloading and keeps only the tags referenced in the rules |
 
 - **By default** `false` on all platforms — backward compatibility with old profiles.
 - **Android / iOS** implement trimming via the built-in Go module `incycore.CutGeoData()` (protobuf parsing of geoip/geosite and discarding unneeded entries).
-- **Desktop (Linux / Windows)** still uses full files — `useChunkFiles` is ignored; the xray process works with the untrimmed `.dat`.
+- **Desktop (Linux / Windows)** still uses full files — `UseChunkFiles` is ignored; the xray process works with the untrimmed `.dat`.
 - After trimming, the hash is recomputed locally and saved in the profile — a re-download will not start until the source `.sha256` on the server changes.
 
 ### When to use
