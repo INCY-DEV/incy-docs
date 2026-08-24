@@ -106,17 +106,19 @@ Special strings are extracted from the body and do not appear in the server list
 
 The subscription body can be a **raw WireGuard or AmneziaWG `.conf` file** (a multi-line INI with `[Interface]` and `[Peer]` sections). The app recognizes it by the presence of `[Interface]` + `PrivateKey` and routes it to the same parser used for file import / paste. AmneziaWG is detected by its obfuscation parameters (`Jc`, `Jmin`, `Jmax`, `S1`–`S4`, `H1`–`H4`, `I1`–`I5`).
 
-The new **AmneziaWG 3.0** parameters are also supported (the engine is updated to amneziawg-go v3). All are optional and forwarded to the engine as-is:
+The new **AmneziaWG 3.0 and 3.1** parameters are also supported (the engine is updated to amneziawg-go v3.1). All are optional and forwarded to the engine as-is:
 
-| `.conf` key | Description |
-|---|---|
-| `HeaderProtectionKey` | Packet-header protection key (set server-side; requires `S1`–`S4` ≥ 8) |
-| `ContentPaddingAddition` | Random content-padding range (`uint32` or a `min-max` range) |
-| `RekeyAfterTime` | Time (seconds) after which the client initiates a rehandshake |
-| `RekeyTimeout` | Timeout (seconds) before the handshake is repeated |
-| `RejectAfterTime` | Time (seconds) after which the client forces a rehandshake and rejects incoming data |
-| `KeepaliveTimeout` | Time (seconds) since the last data send before a keepalive is sent |
-| `MaxHandshakeAttempts` | Maximum number of handshake retries |
+| `.conf` key | Version | Description |
+|---|---|---|
+| `HeaderProtectionKey` | 3.0 | Packet-header protection key (set server-side; requires `S1`–`S4` ≥ 12) |
+| `ContentPaddingAddition` | 3.0 | Random content-padding range (`uint32` or a `min-max` range) |
+| `RekeyAfterTime` | 3.0 | Time (seconds) after which the client initiates a rehandshake |
+| `RekeyTimeout` | 3.0 | Timeout (seconds) before the handshake is repeated |
+| `RejectAfterTime` | 3.0 | Time (seconds) after which the client forces a rehandshake and rejects incoming data |
+| `KeepaliveTimeout` | 3.0 | Time (seconds) since the last data send before a keepalive is sent |
+| `MaxHandshakeAttempts` | 3.0 | Maximum number of handshake retries |
+| `RandomTrailers` | 3.1 | Random packet trailers (`true`/`false`). Off by default |
+| `DisableCookies` | 3.1 | Disables the WireGuard cookie mechanism (`true`/`false`). Off by default |
 
 ```ini
 [Interface]
@@ -136,6 +138,28 @@ PresharedKey = <base64>
 AllowedIPs = 0.0.0.0/0
 Endpoint = server.example.com:51820
 ```
+
+**The `[Device]` section.** AmneziaWG 3.x moves obfuscation and tuning into a separate `[Device]` section. It is supported alongside `[Interface]` — both describe the same device, so any key from the table above may go in either one:
+
+```ini
+[Device]
+Jc = 4
+S1 = 12
+S2 = 12
+HeaderProtectionKey = <hex>
+RandomTrailers = true
+
+[Interface]
+PrivateKey = <base64>
+Address = 10.8.0.2/32
+
+[Peer]
+PublicKey = <base64>
+AllowedIPs = 0.0.0.0/0
+Endpoint = server.example.com:51820
+```
+
+`[Interface]` stays mandatory — it carries `PrivateKey`. A config with only `[Device]` is rejected.
 
 The body may be plain text or base64-wrapped. The same payload can be delivered via the deep link `incy://import/{base64-conf}` — see [deep-links.md](deep-links.md).
 
@@ -170,6 +194,25 @@ awg://<base64url-conf>#Netherlands
 ```
 
 Each `servers[]` entry → a separate server. `name` is optional (when absent, the name is taken from the `# Name=` comment inside the `.conf` or from the `Endpoint` host). The `version` field is reserved and is not currently validated.
+
+The same container can also be an **element of a JSON array**, next to full xray configs. That lets one subscription ship both VLESS locations and AmneziaWG:
+
+```json
+[
+  { "remarks": "🇵🇱 Poland | TCP", "inbounds": [ /* ... */ ], "outbounds": [ /* ... */ ] },
+  { "remarks": "🇩🇪 Germany | XHTTP", "inbounds": [ /* ... */ ], "outbounds": [ /* ... */ ] },
+  {
+    "type": "amneziawg",
+    "version": 1,
+    "servers": [
+      { "name": "Germany",     "config": "<base64url-conf>" },
+      { "name": "Netherlands", "config": "<base64url-conf>" }
+    ]
+  }
+]
+```
+
+Order is preserved: the AmneziaWG servers appear in the list where the container sits. An array may contain more than one container.
 
 > **Behavior in both formats:** a malformed base64 entry is **skipped** — the other servers still load (one bad location does not break the whole subscription). Duplicates with an identical `.conf` collapse into a single server. On a subscription refresh, servers are added/updated/removed without duplication. HTTP headers stay at the subscription level (shared by all servers).
 
