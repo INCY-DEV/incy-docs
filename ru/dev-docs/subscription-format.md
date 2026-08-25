@@ -110,15 +110,15 @@ vless://uuid@server2:443?security=tls#Server2
 
 | Ключ `.conf` | Версия | Описание |
 |---|---|---|
-| `HeaderProtectionKey` | 3.0 | Ключ защиты заголовков пакетов (задаётся сервером; для работы `S1`–`S4` должны быть ≥ 12) |
+| `HeaderProtectionKey` | 3.0 | Ключ защиты заголовков пакетов (задаётся сервером; для работы `S1`–`S4` должны быть ≥ 12). Принимается в base64 (как выдаёт `awg genkey`) или в hex |
 | `ContentPaddingAddition` | 3.0 | Диапазон случайного паддинга контента (`uint32` или диапазон `min-max`) |
 | `RekeyAfterTime` | 3.0 | Время (сек), после которого клиент инициирует пересогласование |
 | `RekeyTimeout` | 3.0 | Таймаут (сек) повтора рукопожатия |
 | `RejectAfterTime` | 3.0 | Время (сек), после которого клиент принудительно пересогласовывается и отклоняет входящие данные |
 | `KeepaliveTimeout` | 3.0 | Время (сек) от последней отправки данных до отправки keepalive |
 | `MaxHandshakeAttempts` | 3.0 | Максимальное число повторов рукопожатия |
-| `RandomTrailers` | 3.1 | Случайные «хвосты» у пакетов (`true`/`false`). По умолчанию выключено |
-| `DisableCookies` | 3.1 | Отключает cookie-механизм WireGuard (`true`/`false`). По умолчанию выключено |
+| `RandomTrailers` | 3.1 | Случайные «хвосты» у пакетов. По умолчанию выключено |
+| `DisableCookies` | 3.1 | Отключает cookie-механизм WireGuard. По умолчанию выключено |
 
 ```ini
 [Interface]
@@ -160,6 +160,16 @@ Endpoint = server.example.com:51820
 ```
 
 `[Interface]` остаётся обязательной — в ней лежит `PrivateKey`. Конфиг из одной только `[Device]` отвергается.
+
+**Форматы значений.** Клиент нормализует то, что реально встречается в серверных `.conf`:
+
+| Тип | Принимается | Уходит в движок |
+|---|---|---|
+| Булев (`RandomTrailers`, `DisableCookies`) | `on`/`off`, `yes`/`no`, `true`/`false`, `1`/`0`, `enabled`/`disabled` | `true` / `false` |
+| Диапазон (`PersistentKeepalive`, `ContentPaddingAddition`, тайминги, `H1`–`H4`) | `25` или `25-35` (правая граница ≥ левой) | как есть |
+| 32-байтный ключ (`PrivateKey`, `PublicKey`, `PresharedKey`, `HeaderProtectionKey`) | base64 или hex | hex |
+
+Начиная с AmneziaWG 3.x `PersistentKeepalive` может быть **диапазоном** — интервал keepalive выбирается случайно внутри него.
 
 Тело может быть как plain-text, так и base64-обёрнутым. То же самое можно доставить через deep-link `incy://import/{base64-conf}` — см. [deep-links.md](deep-links.md).
 

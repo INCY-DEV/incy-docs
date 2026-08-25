@@ -110,15 +110,15 @@ The new **AmneziaWG 3.0 and 3.1** parameters are also supported (the engine is u
 
 | `.conf` key | Version | Description |
 |---|---|---|
-| `HeaderProtectionKey` | 3.0 | Packet-header protection key (set server-side; requires `S1`–`S4` ≥ 12) |
+| `HeaderProtectionKey` | 3.0 | Packet-header protection key (set server-side; requires `S1`–`S4` ≥ 12). Accepted as base64 (what `awg genkey` emits) or as hex |
 | `ContentPaddingAddition` | 3.0 | Random content-padding range (`uint32` or a `min-max` range) |
 | `RekeyAfterTime` | 3.0 | Time (seconds) after which the client initiates a rehandshake |
 | `RekeyTimeout` | 3.0 | Timeout (seconds) before the handshake is repeated |
 | `RejectAfterTime` | 3.0 | Time (seconds) after which the client forces a rehandshake and rejects incoming data |
 | `KeepaliveTimeout` | 3.0 | Time (seconds) since the last data send before a keepalive is sent |
 | `MaxHandshakeAttempts` | 3.0 | Maximum number of handshake retries |
-| `RandomTrailers` | 3.1 | Random packet trailers (`true`/`false`). Off by default |
-| `DisableCookies` | 3.1 | Disables the WireGuard cookie mechanism (`true`/`false`). Off by default |
+| `RandomTrailers` | 3.1 | Random packet trailers. Off by default |
+| `DisableCookies` | 3.1 | Disables the WireGuard cookie mechanism. Off by default |
 
 ```ini
 [Interface]
@@ -160,6 +160,16 @@ Endpoint = server.example.com:51820
 ```
 
 `[Interface]` stays mandatory — it carries `PrivateKey`. A config with only `[Device]` is rejected.
+
+**Value forms.** The client normalises what server `.conf` files actually contain:
+
+| Type | Accepted | Sent to the engine |
+|---|---|---|
+| Boolean (`RandomTrailers`, `DisableCookies`) | `on`/`off`, `yes`/`no`, `true`/`false`, `1`/`0`, `enabled`/`disabled` | `true` / `false` |
+| Range (`PersistentKeepalive`, `ContentPaddingAddition`, timings, `H1`–`H4`) | `25` or `25-35` (upper bound ≥ lower) | as-is |
+| 32-byte key (`PrivateKey`, `PublicKey`, `PresharedKey`, `HeaderProtectionKey`) | base64 or hex | hex |
+
+Since AmneziaWG 3.x, `PersistentKeepalive` may be a **range** — the keepalive interval is picked at random within it.
 
 The body may be plain text or base64-wrapped. The same payload can be delivered via the deep link `incy://import/{base64-conf}` — see [deep-links.md](deep-links.md).
 
