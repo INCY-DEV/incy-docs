@@ -245,7 +245,7 @@ Order is preserved: the AmneziaWG servers appear in the list where the container
 | `homepage` | URL | Fallback for `profile-web-page-url` |
 | `announce-url` | URL | Announcement link |
 | `announce` | string | Announcement text (up to 200 characters). Supports base64 |
-| `autorouting` | URL | URL source of a routing profile with auto-update |
+| `autorouting` | string | Routing profile with auto-update. The full link, including the scheme: `incy://autorouting/onadd/https://…` (a bare URL does not work) |
 | `routing` | string | Routing profile (base64 or full link) |
 | `sort-order` | string | Server sort order: `ping`, `name`, `none` |
 | `content-disposition` | string | Fallback for the subscription name (`.txt`, `.yaml` extensions are stripped) |

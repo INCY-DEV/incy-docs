@@ -38,14 +38,25 @@
 
 ## HTTP-заголовок
 
-Заголовок `autorouting` содержит URL, по которому доступен JSON-профиль маршрутизации:
+Заголовок `autorouting` содержит ссылку в том же формате, что и в теле подписки — то есть **со схемой `://autorouting/onadd/`**, а не «голый» URL:
 
 ```
 HTTP/2 200
-autorouting: https://raw.githubusercontent.com/user/repo/main/profile.json
+autorouting: incy://autorouting/onadd/https://raw.githubusercontent.com/user/repo/main/profile.json
 ```
 
 Профиль скачивается при обновлении подписки, сохраняется с привязкой к URL-источнику и периодически обновляется.
+
+> **Важно:** значение вида `autorouting: https://.../profile.json` (без префикса `://autorouting/onadd/`) **не работает** — клиент такой заголовок игнорирует. Разбор ищет в значении подстроку `://autorouting/onadd/` или `://autorouting/add/` и берёт всё, что идёт после неё.
+
+Схема перед `://` может быть любой — разбор смотрит только на часть `://autorouting/…`. Оба варианта равнозначны:
+
+```
+autorouting: incy://autorouting/onadd/https://example.com/profile.json
+autorouting: ://autorouting/onadd/https://example.com/profile.json
+```
+
+Как и в теле подписки, `onadd` активирует профиль сразу, `add` — только добавляет с автообновлением.
 
 ## Тело подписки
 

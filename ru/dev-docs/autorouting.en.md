@@ -38,14 +38,25 @@ Examples:
 
 ## HTTP header
 
-The `autorouting` header contains the URL where the routing profile JSON is available:
+The `autorouting` header contains a link in the same format as in the subscription body — that is, **with the `://autorouting/onadd/` scheme**, not a bare URL:
 
 ```
 HTTP/2 200
-autorouting: https://raw.githubusercontent.com/user/repo/main/profile.json
+autorouting: incy://autorouting/onadd/https://raw.githubusercontent.com/user/repo/main/profile.json
 ```
 
 The profile is downloaded when the subscription is updated, stored with a binding to the URL source, and updated periodically.
+
+> **Important:** a value like `autorouting: https://.../profile.json` (without the `://autorouting/onadd/` prefix) **does not work** — the client ignores such a header. The parser looks for the substring `://autorouting/onadd/` or `://autorouting/add/` in the value and takes everything after it.
+
+The scheme before `://` can be anything — the parser only looks at the `://autorouting/…` part. Both forms are equivalent:
+
+```
+autorouting: incy://autorouting/onadd/https://example.com/profile.json
+autorouting: ://autorouting/onadd/https://example.com/profile.json
+```
+
+As in the subscription body, `onadd` activates the profile immediately, `add` only adds it with auto-update.
 
 ## Subscription body
 

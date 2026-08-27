@@ -233,7 +233,7 @@ routing: off
 A URL source of the routing profile with periodic updates. See [autorouting.md](autorouting.md) for details.
 
 ```
-autorouting: https://raw.githubusercontent.com/user/repo/main/profile.json
+autorouting: incy://autorouting/onadd/https://raw.githubusercontent.com/user/repo/main/profile.json
 ```
 
 ### Routing Source Priority

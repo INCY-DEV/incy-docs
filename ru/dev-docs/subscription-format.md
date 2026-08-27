@@ -245,7 +245,7 @@ awg://<base64url-conf>#Нидерланды
 | `homepage` | URL | Fallback для `profile-web-page-url` |
 | `announce-url` | URL | Ссылка на объявление |
 | `announce` | string | Текст объявления (до 200 символов). Поддерживает base64 |
-| `autorouting` | URL | URL-источник профиля маршрутизации с автообновлением |
+| `autorouting` | string | Профиль маршрутизации с автообновлением. Ссылка целиком, со схемой: `incy://autorouting/onadd/https://…` (голый URL не работает) |
 | `routing` | string | Профиль маршрутизации (base64 или полная ссылка) |
 | `sort-order` | string | Порядок сортировки серверов: `ping`, `name`, `none` |
 | `content-disposition` | string | Fallback для имени подписки (расширения `.txt`, `.yaml` удаляются) |

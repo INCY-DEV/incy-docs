@@ -57,7 +57,7 @@ https://raw.githubusercontent.com/user/repo/main/INCY/DEFAULT.JSON
 ```
 HTTP/2 200
 content-type: text/plain
-autorouting: https://raw.githubusercontent.com/user/repo/main/profile.json
+autorouting: incy://autorouting/onadd/https://raw.githubusercontent.com/user/repo/main/profile.json
 
 vless://uuid@server1:443?security=tls&type=ws#Server 1
 vless://uuid@server2:443?security=tls&type=ws#Server 2
@@ -92,7 +92,7 @@ profile-title: My VPN
 support-url: https://t.me/support_bot
 profile-web-page-url: https://my-vpn.com
 subscription-userinfo: upload=0;download=536870912;total=10737418240;expire=1735689600
-autorouting: https://raw.githubusercontent.com/user/repo/main/profile.json
+autorouting: incy://autorouting/onadd/https://raw.githubusercontent.com/user/repo/main/profile.json
 
 vless://uuid@server1:443?security=tls#NL
 vless://uuid@server2:443?security=tls#DE
