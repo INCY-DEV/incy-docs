@@ -2,6 +2,8 @@
 
 Описание параметров для протокольных ссылок серверов (VLESS, VMess, Trojan, Shadowsocks, Hysteria2, SOCKS5, WireGuard).
 
+> **Серверы только для Wi-Fi / мобильной сети (Premium):** добавьте `only Wi-Fi` или `only Mobile` в название сервера. См. [правила показа и примеры](subscription-format.md#network-visibility).
+
 ---
 
 ## VLESS

@@ -2,6 +2,8 @@
 
 A subscription can return complete xray-core configuration files with balancers, observatories, and custom routing. Such configurations are passed to xray-core almost unchanged.
 
+> **Wi-Fi / mobile-only servers (Premium):** add `only Wi-Fi` or `only Mobile` to the server name. See [network visibility rules and examples](subscription-format.md#network-visibility).
+
 ## Detection
 
 A configuration is considered "full" if the JSON contains **both** fields:

@@ -2,6 +2,8 @@
 
 Description of parameters for protocol server links (VLESS, VMess, Trojan, Shadowsocks, Hysteria2, SOCKS5, WireGuard).
 
+> **Wi-Fi / mobile-only servers (Premium):** add `only Wi-Fi` or `only Mobile` to the server name. See [network visibility rules and examples](subscription-format.md#network-visibility).
+
 ---
 
 ## VLESS

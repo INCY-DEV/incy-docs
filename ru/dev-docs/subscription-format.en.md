@@ -228,6 +228,54 @@ Order is preserved: the AmneziaWG servers appear in the list where the container
 
 ---
 
+## Server visibility by network type (Premium) {#network-visibility}
+
+Premium subscriptions can show different servers on Wi-Fi and mobile networks. This feature is implemented in iOS, Android and Desktop (`incy-linux`), on both the home screen and the server list.
+
+Include one of these exact markers in the **server name**:
+
+| Marker in the name | Wi-Fi / Ethernet | Mobile network |
+|---|---|---|
+| `only Wi-Fi` | Visible | Hidden |
+| `only Mobile` | Hidden | Visible |
+| No marker | Visible | Visible |
+
+For example: `Germany only Wi-Fi` and `Germany only Mobile`. The marker can appear anywhere in the name and remains visible to the user.
+
+**Requirements and limitations:**
+
+- The subscription must have active Premium. Without it, these markers do not hide servers.
+- Matching is case-sensitive; the space and hyphen matter. `WiFi only`, `WIFI only`, `LTE only` and `only LTE` are not recognized. Use exactly `only Wi-Fi` or `only Mobile`.
+- `only Mobile` covers cellular networks, including LTE/4G and 5G, rather than LTE alone.
+- Ethernet is treated like Wi-Fi. If the network type is unknown, nothing is hidden by this filter.
+- Desktop detects the network type from network interfaces, checking roughly every 10 seconds. Unusual interface names can make detection inaccurate. Connecting to a phone's hotspot over Wi-Fi counts as Wi-Fi.
+- Use only one marker per server. This is a display filter; the markers do not configure routing rules or guarantee automatic reconnection when the network changes.
+
+### Share-link example
+
+The name goes after `#`. Encode spaces as `%20`; the filter checks the decoded name:
+
+```text
+vless://00000000-0000-4000-8000-000000000001@wifi.example.com:443?encryption=none&security=tls&type=tcp#Germany%20only%20Wi-Fi
+vless://00000000-0000-4000-8000-000000000002@mobile.example.com:443?encryption=none&security=tls&type=tcp#Germany%20only%20Mobile
+```
+
+Replace the UUIDs and hosts with your server parameters. For a base64 subscription, add the markers to the link names first, then encode the subscription body as usual.
+
+### JSON subscription example
+
+For a full Xray config, set the name using the top-level `remarks` field:
+
+```json
+{
+  "remarks": "Germany only Mobile"
+}
+```
+
+This is a **metadata fragment**, not a complete configuration: add `remarks` to your existing object containing `inbounds` and `outbounds`. In a config array, set the marker separately for each object. It applies to the entire displayed entry, not individual outbounds within a balancer.
+
+---
+
 ## HTTP headers
 
 ### Subscription headers
