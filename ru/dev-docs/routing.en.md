@@ -146,6 +146,33 @@ The system splits DNS queries into remote (Remote, via proxy) and local (Domesti
 | `DnsHosts` | object | Manual DNS records (analogous to a hosts file). Format: `{"domain": "ip"}` |
 | `FakeDNS` | string | `"true"` — substitutes virtual IPs instead of real ones so that Xray handles all queries according to the configuration |
 
+#### VPN DNS → Internal versus FakeDNS
+
+These are separate settings. In the Apple client's HEV mode, **Internal**
+(`198.18.0.2`) uses `mapdns`: applications receive a virtual IPv4 from
+`240.0.0.0/4`, and HEV restores its domain before handing the connection to
+Xray. This can happen even with profile `FakeDNS=false`. These addresses
+must stay inside the VPN; they are not the provider server's addresses.
+
+Profile `FakeDNS` controls Xray's mechanism. `RemoteDNS` and `DomesticDNS`
+select profile resolvers; they do not switch HEV mapdns on or off. Full
+subscription JSON may supply its own DNS configuration.
+
+The October 2026 fixes restore Android mapdns and capture its virtual range
+when LAN bypass is enabled. Desktop Internal gains an equivalent using
+Xray FakeDNS while retaining Xray TUN, upstream resolvers and explicit
+provider pools. DNS selection rules may still return real addresses for
+specific domains. Stored profiles are unchanged. Availability depends on
+the installed build.
+
+For real IPs, select a public VPN DNS preset and disable profile FakeDNS.
+Generated configurations still intercept DNS in Xray, retaining the
+profile's Remote/Domestic DNS and routing. For full JSON, also check its
+own DNS and interception rules. Reconnect and restart the affected browser
+to exclude stale DNS cache. A virtual IP alone does not establish the cause
+of a JavaScript or WebSocket failure; include DNS results and logs if the
+problem persists.
+
 #### Routing rules
 
 Traffic is distributed across three categories:
