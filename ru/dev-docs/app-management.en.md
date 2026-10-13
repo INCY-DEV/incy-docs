@@ -4,7 +4,7 @@ Parameters for controlling app behavior via subscription HTTP headers and lines 
 
 ## Delivery Methods
 
-All parameters can be delivered in two ways:
+Parameters supporting both sources can be delivered in two ways. HTTP-only exceptions, including URL migration and banners, are documented in their sections:
 
 **1. HTTP header:**
 ```
@@ -76,6 +76,19 @@ profile-update-interval: 6
 ```
 #profile-update-interval: 6
 ```
+
+### Geo file update interval
+
+`routing-geo-update-interval` is an INCY extension for any provider delivering a routing profile with its subscription; Premium is not required. It refreshes `geoip.dat` and `geosite.dat` independently of `profile-update-interval` and the Autorouting source refresh.
+
+```http
+profile-update-interval: 1
+routing-geo-update-interval: 168
+```
+
+This requests subscription refresh every hour and geo checks every 7 days. The body equivalent is `#routing-geo-update-interval: 168`, including inside a base64-encoded text subscription. Accepts integer hours `0`–`8760`. Invalid values are ignored; a valid header takes precedence over the body. Missing/zero means no provider schedule. An explicit user interval or “Do not update” takes precedence over the provider.
+
+For day presets, safe downloads and retries, see [per-profile geo auto-update](routing.md#geo-auto-update).
 
 ### Subscription Status
 
@@ -162,9 +175,12 @@ vless://uuid@server:443#Server
 
 | Header | Alternatives | Format | Body (`#`) | Description |
 | --- | --- | --- | --- | --- |
+| `new-domain` | — | hostname | — | Migrate this subscription: replace host; HTTP only |
+| `new-url` | — | HTTPS URL | — | Migrate this subscription: replace full URL; HTTP only |
 | `profile-title` | `subscription-name`, `content-disposition` | text / `base64:...` | ✅ | Subscription name |
 | `profile-description` | — | text / `base64:...` | — | Subscription description |
 | `profile-update-interval` | — | number (hours) | ✅ | Update interval |
+| `routing-geo-update-interval` | — | integer hours (0–8760) | ✅ | Per-profile geo file auto-update; 0 disables it |
 | `subscription-userinfo` | — | `key=value;...` | — | Traffic statistics |
 | `sort-order` | — | `none` / `ping` / `name` | — | Server sort order (per-subscription on iOS/Android; global on Desktop) |
 | `support-url` | — | URL | ✅ | Support link |
@@ -177,9 +193,16 @@ vless://uuid@server:443#Server
 | `premium-url` | — | URL | — | "Premium" link (in the subscription card, see below) |
 | `banner-text` | — | text / `base64:...` | — | Banner text (overrides the panel, see below) |
 | `banner-button-text` | — | text / `base64:...` | — | Banner button text |
-| `banner-button-url` | — | URL | — | Banner button link |
+| `banner-button-url` | `banner-url` | URL | — | Banner button link |
 | `banner-bg-color` | — | hex (`#RRGGBB`) | — | Banner background color |
 | `banner-button-color` | — | hex (`#RRGGBB`) | — | Banner button color |
+| `expiry-banner-text` | — | text / `base64:...` | — | Expiry banner: banner text |
+| `expiry-banner-button-text` | — | text / `base64:...` | — | Expiry banner: button label |
+| `expiry-banner-button-url` | `expiry-banner-url` | URL | — | Expiry banner: button url |
+| `expiry-banner-bg-color` | — | hex `#RRGGBB` | — | Expiry banner: banner background |
+| `expiry-banner-button-color` | — | hex `#RRGGBB` | — | Expiry banner: button background |
+| `expiry-banner-text-color` | — | hex `#RRGGBB` | — | Expiry banner: banner text color |
+| `expiry-banner-button-text-color` | — | hex `#RRGGBB` | — | Expiry banner: button label color |
 | `hide-url` | — | `1` / `0` / `true` / `false` | ✅ | Hide the subscription URL from Share/Copy/QR/backup (see below) |
 | `hide-check` | — | `1` / `0` / `true` / `false` | ✅¹ | Hide the Home "Check" button (see below) |
 | `per-app-proxy-enable` | — | `1` / `0` | — | Enable per-app mode (Android only) |
@@ -441,6 +464,45 @@ banner-button-color: #38A169
 
 ---
 
+## Expiring and expired subscription banners {#expiry-banner-headers}
+
+Premium providers can override this banner with **HTTP response headers**. These headers are independent of `banner-*`; `premium-url` does not override the expiry button. `#` body directives are not supported for these banner fields.
+
+| Header | Format | Panel field |
+|---|---|---|
+| `expiry-banner-text` | text / `base64:...` | `expiryBannerText` |
+| `expiry-banner-button-text` | text / `base64:...` | `expiryBannerButtonText` |
+| `expiry-banner-button-url` | URL | `expiryBannerButtonUrl` |
+| `expiry-banner-bg-color` | hex `#RRGGBB` | `expiryBannerBgColor` |
+| `expiry-banner-button-color` | hex `#RRGGBB` | `expiryBannerButtonColor` |
+| `expiry-banner-text-color` | hex `#RRGGBB` | `expiryBannerTextColor` |
+| `expiry-banner-button-text-color` | hex `#RRGGBB` | `expiryBannerButtonTextColor` |
+
+```http
+expiry-banner-text: Renew your subscription
+expiry-banner-button-text: Renew
+expiry-banner-button-url: https://example.com/renew
+expiry-banner-bg-color: #082C22
+expiry-banner-button-color: #29C896
+expiry-banner-text-color: #FFFFFF
+expiry-banner-button-text-color: #062018
+```
+
+`expiry-banner-url` is a short alias for `expiry-banner-button-url`. If both are present, the full name wins. The ordinary banner also accepts `banner-url` as an alias for `banner-button-url`. Encode Cyrillic and other non-ASCII text with `base64:`.
+
+### Display and precedence
+
+- The provider must have active Premium. Non-Premium subscriptions do not display these banners.
+- A non-empty `expiry-banner-text` enables the expiry banner without `expiryBannerEnabled` in the panel. A URL or color alone only overrides an existing banner.
+- The client uses `subscription-userinfo` → `expire` to show it within 3 days of expiry or after expiry. Unknown expiry dates do not trigger it. A header does not change the subscription's expiry date.
+- Each supplied non-empty field overrides the panel. Removing a header or sending an empty value restores the panel fallback on the next successful subscription refresh. The saved override survives app restarts.
+- The regular announcement/maintenance banner retains priority over the ordinary expiry banner. If a separate post-expiry renewal reminder is configured in the panel, `expiry-banner-*` also overrides that reminder's text, button and colors; its display schedule remains unchanged.
+- Explicit header text is kept after expiry. Without it, the existing panel/default post-expiry text is used. Use wording that works both before and after expiry, or update the response dynamically.
+
+Supported on iOS, Android and Desktop; TV clients show the action URL as a QR code. The provider must keep returning the headers and expiry metadata when the subscription is expired if the client is to receive updated content.
+
+---
+
 ## Hiding the Subscription URL from the User
 
 The `hide-url` parameter prevents the subscription URL from "leaking" off the device: when enabled, the app **does not show or allow exporting** the URL via Share, Copy URL, QR code, or backups. The subscription name, servers, and all the rest of the UX work as usual — only the URL itself is hidden.
@@ -580,3 +642,34 @@ These parameters are stored in the provider's [Premium API](premium-api.md) conf
 | Push notifications      | Moderation, targeting, cancellation                                                      | [provider-notifications.md](provider-notifications.md)   |
 
 > **Fragmentation, noise, and DoH resolution** are available through **both** channels: subscription HTTP headers (see above) or the Premium API. For a Premium subscription, API values take precedence over headers.
+
+
+## Migrating an individual subscription URL {#subscription-url-migration}
+
+Return one of these HTTP headers with a successfully parsed subscription response:
+
+```http
+new-domain: project-a.example.com
+```
+
+This replaces only the host: `https://old.example.com:8443/sub/token%2F?key=a+b#HWID` → `https://project-a.example.com:8443/sub/token%2F?key=a+b#HWID`. The port, path, query and fragment are preserved without decoding opaque tokens. Supply a bare hostname without a scheme, port or path; use ASCII/Punycode for international domain names.
+
+To change the path or token as well, supply the complete address:
+
+```http
+new-url: https://project-b.example.com/new-path/token?key=a%2Bb
+```
+
+`new-url` replaces the entire URL, including the query and fragment. Include their old values if they must survive. It takes precedence over `new-domain`; an invalid `new-url` does not fall back to `new-domain`. Values are plain text, without `base64:`. Body comments such as `#new-url:` or `#new-domain:` are not supported.
+
+**A migration applies only to the subscription that received this response.** Its ID, local settings and routing association survive; no second card is created. Two subscriptions belonging to one provider may migrate to different addresses. Neither the URL nor the approval is stored in the provider-wide cache. The current refresh uses the received content; the next fetch uses the new URL.
+
+### Migration checks
+
+- The saved URL, final response URL after redirects/fallback and proposed URL must all use HTTPS without embedded credentials.
+- All three domains must be verified, not deleted and owned by **the same provider** in the panel. Premium status alone is not domain verification.
+- The panel reads current domain records using SHA-256 hostname hashes. No subscription path, token or complete URL is sent for approval, and approval is not cached.
+- Same-host proposals, invalid URLs, collisions with another stored subscription and concurrent manual edits of the source URL prevent migration. In particular, a `new-url` changing only the path on the same host is ignored.
+- An offline/older panel or a rejected approval leaves the saved URL unchanged; a valid subscription refresh still proceeds. Empty or invalid subscription responses never migrate the URL.
+
+This requires updated Android/Android TV, iOS/tvOS and Desktop clients and a panel supporting `/api/subscription/resolve?h=…&target=…&origin=…` verification. It is separate from provider-wide domain replacement and `fallbackHosts`. The old address must still respond, directly or through an eligible fallback: a completely unreachable domain cannot deliver a migration header.

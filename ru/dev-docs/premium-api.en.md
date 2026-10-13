@@ -88,6 +88,23 @@ Response components:
 | `alwaysHwidEnable` | boolean | Force sending the HWID (the user cannot disable it) |
 | `expiryNotifications` | boolean | Local notifications about subscription expiry |
 | `showServerDescription` | boolean | Show server descriptions. Defaults to `true` |
+| `keepExpanded` | boolean / null | Keep this subscription expanded by default; the user can override it (see below) |
+
+#### Keep subscription expanded {#keep-expanded}
+
+Set this option in the provider's Premium panel. It is delivered through the existing configuration API as `settings.keepExpanded`, not as a subscription HTTP header:
+
+```json
+{
+  "settings": {
+    "keepExpanded": true
+  }
+}
+```
+
+`true` keeps the provider's list expanded on Home and Servers. `false`, `null` or an absent field allows collapsing by default. The provider default requires active Premium. This is a default, not a lock: the user can enable or disable **Keep expanded** in the subscription's three-dot settings menu. Their explicit choice survives restarts and subscription updates and overrides later provider changes.
+
+While enabled, individual collapse and “Collapse all” leave this subscription expanded. Other subscriptions and manually added servers are unaffected. Supported on iOS/tvOS, Android/TV and Desktop; older clients ignore the optional field.
 
 #### Domain fronting and fragmentation
 
@@ -152,7 +169,7 @@ An arbitrary-color banner inside the subscription card. Used for announcements a
 
 #### Expiry banner
 
-A separate banner shown **only** to users whose subscription expires in **3 days or less** (the day count is computed on-device from the subscription expiry date). Prompts the user to renew. Its field set is independent from the banner above.
+A separate banner for subscriptions expiring in **3 days or less**, or already expired (the client uses the subscription expiry date). Prompts the user to renew. Its field set is independent from the banner above.
 
 | Field | Type | Description |
 |---|---|---|
@@ -162,8 +179,12 @@ A separate banner shown **only** to users whose subscription expires in **3 days
 | `expiryBannerButtonUrl` | string? | Button URL (if unset — the button is not shown) |
 | `expiryBannerBgColor` | string? | Background color (hex, defaults to `"#D97706"`) |
 | `expiryBannerButtonColor` | string? | Button color (hex, defaults to green) |
+| `expiryBannerTextColor` | string? | Banner text color (hex) |
+| `expiryBannerButtonTextColor` | string? | Button label color (hex) |
 
-**Priority:** if the maintenance banner (`bannerEnabled`) is on, **only that one** is shown (to everyone). The expiry banner appears only when `bannerEnabled` is off, `expiryBannerEnabled` is on, and the user's subscription expires within 3 days.
+**Priority:** the regular announcement/maintenance banner takes precedence over the ordinary expiry banner. The latter is enabled by the panel or a non-empty `expiry-banner-text` header and is shown within 3 days of expiry or after expiry. A separate renewal reminder, when configured, retains its own display rules.
+
+All seven content/color fields can be overridden via [expiry banner headers](app-management.md#expiry-banner-headers), including the post-expiry renewal reminder. The user subscription's expiry date still comes from `subscription-userinfo`.
 
 Platforms: iOS, Android, Desktop (incy-linux).
 
@@ -319,3 +340,9 @@ This lets the provider migrate users to a new domain when the old one is blocked
 ## Certificate Pinning
 
 Requests to the Premium API on Android and Desktop are protected by certificate pinning (SHA-256 pins of the TLS certificate). This prevents MITM attacks on the communication channel with the API.
+
+## Approval of subscription-header migrations
+
+`GET /api/subscription/resolve?h=<sourceHash>&target=<targetHash>&origin=<responseHostHash>` checks verification and ownership of the source, target and actual response domains. All values are SHA-256 hashes of lowercase hostnames. The response contains `success`, `approved`, `sourceHash`, `targetHash`, `originHash`, with `Cache-Control: no-store`. Approval creates no global domain mapping and needs no subscription URL/token. Clients validate all three echoed hashes and apply approval only to the current subscription. Missing `approved: true` means no approval. Invalid hashes return HTTP 400; verification failures return HTTP 503. Requests without `target` and `origin` retain the existing provider-wide domain resolution behavior.
+
+Providers supply the new URL in the subscription HTTP response, not shared Premium settings: [new-domain / new-url](app-management.md#subscription-url-migration).

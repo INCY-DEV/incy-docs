@@ -282,10 +282,13 @@ vless://00000000-0000-4000-8000-000000000002@mobile.example.com:443?encryption=n
 
 | Заголовок | Тип | Описание |
 |---|---|---|
+| `new-domain` | домен | Заменить хост этой подписки после проверки владельца доменов |
+| `new-url` | HTTPS URL | Заменить URL этой подписки целиком; приоритет над `new-domain` |
 | `profile-title` | string | Имя подписки (до 25 символов). Поддерживает base64 |
 | `subscription-name` | string | Альтернатива `profile-title` (fallback) |
 | `profile-description` | string | Описание подписки. Поддерживает base64 |
 | `profile-update-interval` | int | Интервал обновления в часах |
+| `routing-geo-update-interval` | int | Интервал обновления геофайлов в часах (`0`–`8760`); локальный выбор имеет приоритет. См. [автообновление геофайлов](routing.md#geo-auto-update) |
 | `subscription-userinfo` | string | Статистика трафика и срок действия |
 | `support-url` | URL | Ссылка на поддержку |
 | `support-email` | email | Email поддержки — показывает кнопку «Email» в карточке подписки. Без заголовка кнопка не показывается |
@@ -301,9 +304,16 @@ vless://00000000-0000-4000-8000-000000000002@mobile.example.com:443?encryption=n
 | `hide-url` | `1`/`0`/`true`/`false` | Скрыть URL подписки от Share/Copy/QR/backup |
 | `banner-text` | string | Текст баннера (base64). Перебивает панель |
 | `banner-button-text` | string | Текст кнопки баннера |
-| `banner-button-url` | URL | Ссылка кнопки баннера |
+| `banner-button-url` / `banner-url` | URL | Ссылка кнопки баннера |
 | `banner-bg-color` | hex | Цвет фона баннера (`#RRGGBB`) |
 | `banner-button-color` | hex | Цвет кнопки баннера (`#RRGGBB`) |
+| `expiry-banner-text` | текст / `base64:...` | Текст баннера (баннер истечения) |
+| `expiry-banner-button-text` | текст / `base64:...` | Подпись кнопки (баннер истечения) |
+| `expiry-banner-button-url` / `expiry-banner-url` | URL | Ссылка кнопки (баннер истечения) |
+| `expiry-banner-bg-color` | hex `#RRGGBB` | Фон баннера (баннер истечения) |
+| `expiry-banner-button-color` | hex `#RRGGBB` | Фон кнопки (баннер истечения) |
+| `expiry-banner-text-color` | hex `#RRGGBB` | Цвет текста баннера (баннер истечения) |
+| `expiry-banner-button-text-color` | hex `#RRGGBB` | Цвет подписи кнопки (баннер истечения) |
 | `fragmentation-enable` | `1`/`0` | TCP-фрагментация |
 | `fragmentation-length` | `min-max` | Диапазон длины фрагмента |
 | `fragmentation-interval` | `min-max` | Диапазон задержки между фрагментами |
@@ -416,3 +426,7 @@ sort-order: ping
 ## Резервные хосты (fallback)
 
 Если основной хост подписки недоступен (сеть/таймаут/5xx/429), клиент перебирает резервные хосты — тот же путь и токен, меняется только хост. На `404`/`410` (подписка удалена провайдером) перебор не выполняется. Список резервных хостов приходит не через заголовок, а в теле premium-конфига (`settings.fallbackHosts`) — см. [premium-api.md](premium-api.md).
+
+## Смена URL подписки
+
+HTTP-заголовок `new-domain` меняет только хост, а `new-url` — весь адрес. Перенос применяется к одной подписке после проверки принадлежности доменов тому же провайдеру. Подробности и ограничения: [перенос подписки](app-management.md#subscription-url-migration).

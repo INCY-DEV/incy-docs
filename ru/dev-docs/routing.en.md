@@ -215,9 +215,10 @@ Geo files (`geoip.dat`, `geosite.dat`) are downloaded from the URLs specified in
 
 1. `{filename}.sha256` (a few bytes) is downloaded from the same URL
 2. If the hash matches the stored one **and** the file exists locally → the download is skipped (even on a manual update)
-3. If the `.sha256` file is unavailable → fall back to comparing `LastUpdated` timestamps
-4. The full file is downloaded → SHA-256 is computed → the file is replaced
-5. The new hash is saved in the profile
+3. Without `.sha256`, an ordinary profile import can use `LastUpdated` to skip unchanged data. Manual and scheduled geo refresh bypass this timestamp check.
+4. Required files are downloaded into a staging directory. The client computes SHA-256 and verifies it against the sidecar when available. An incomplete HTTP transfer or checksum mismatch fails the update.
+5. Only after all required downloads succeed are the live files replaced. Network failures keep the old pair; failure to install the second file triggers rollback of the first.
+6. Hashes and the successful-check timestamp are saved after installation. See [failure handling and retries](#geo-update-safety).
 
 ### Recommendation for providers
 
@@ -225,7 +226,7 @@ Place a `geoip.dat.sha256` and `geosite.dat.sha256` file next to the geo files. 
 
 Example contents of `geoip.dat.sha256`:
 ```
-38c25fea171323e0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4
+556d4041c378123499c307abc6165ab61eda2a7541f792def3d52c160e2fdd05
 ```
 
 ---
@@ -256,3 +257,39 @@ Do not enable it if:
 
 - The profile uses many tags — trimming gives no benefit.
 - There are custom geosite files with a non-standard layout — the client may not recognize the structure.
+
+## Per-profile geo file auto-update {#geo-auto-update}
+
+Any provider can send `routing-geo-update-interval: 24` as an HTTP response header, or `#routing-geo-update-interval: 24` in the subscription text (including base64-encoded text). Premium is not required. Values are integer hours from `0` to `8760`; zero or an absent value disables periodic checks **when there is no local override**. Invalid values are ignored. A valid HTTP header takes precedence over the body. `profile-update-interval` continues to control subscription refresh only.
+
+The setting is supported on iOS/tvOS (including Designed for iPad on macOS), Android/TV and Desktop. It applies to the routing profile delivered with the subscription; it does not provide geo download URLs by itself. Those URLs come from `Geoipurl` and `Geositeurl` in the profile.
+
+### Interval selection
+
+The header always uses **hours**, even when the editor displays days:
+
+| Editor interval | Header value |
+|---|---|
+| 3 days | `72` |
+| 7 days | `168` |
+| 15 days | `360` |
+| 30 days | `720` |
+| 90 days | `2160` |
+
+Every profile editor offers disabled, 1/6/12/24 hours or 3/7/15/30/90 days, or the provider default. The local choice survives subscription updates and application restarts. A missing provider default means disabled. Initial downloads, manual refresh and changed-profile handling remain independent of this schedule.
+
+### Failed downloads and retries {#geo-update-safety}
+
+Scheduled checks refresh files at their existing URLs even when the profile's `LastUpdated` is unchanged. Matching `.sha256` sidecars avoid unnecessary downloads. Successful checks are recorded even when the contents are unchanged.
+
+GeoIP and GeoSite are first downloaded into a staging directory. HTTP completeness, non-empty content and the published `.sha256` checksum are checked before replacing either live file. A network interruption or checksum mismatch keeps both previous files and does not advance the successful-check timestamp. If installing the second file fails, the first is rolled back.
+
+Automatic failures back off for at least 30 minutes, then 1, 2, 4 and at most 6 hours while the app is running. Success resets the delay. Backoff is per session: restarting the app allows a fresh attempt. Manual refresh remains available immediately. On iOS, each file download also has up to three attempts with short delays.
+
+A failed attempt does not restart the configured 3/7/15/30/90-day interval: it uses the shorter retry delay. Automatic retries require geo auto-update to be enabled. If it is disabled, use manual refresh. Until a successful update, existing geo rules continue to use the downloaded files. On a first download there is no previous copy to restore.
+
+Checks run while the application is running and after launch. Background suspension or sleep can delay them. A new geo directory takes effect on the next connection; refresh does not forcibly disconnect VPN.
+
+### Profiles from different providers
+
+Imported profiles are shown as **Profile [GoVPN]**, using the provider's `profile-title` or the subscription name as fallback. They are bound by local subscription ID, so identical names in different subscriptions remain isolated. Renaming the provider updates the existing profile label. Legacy unbound profiles are retained to protect manually configured rules.

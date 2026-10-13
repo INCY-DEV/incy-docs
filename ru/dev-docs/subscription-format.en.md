@@ -282,10 +282,13 @@ This is a **metadata fragment**, not a complete configuration: add `remarks` to 
 
 | Header | Type | Description |
 |---|---|---|
+| `new-domain` | hostname | Replace this subscription’s host after domain ownership verification |
+| `new-url` | HTTPS URL | Replace this subscription’s entire URL; takes precedence over `new-domain` |
 | `profile-title` | string | Subscription name (up to 25 characters). Supports base64 |
 | `subscription-name` | string | Alternative to `profile-title` (fallback) |
 | `profile-description` | string | Subscription description. Supports base64 |
 | `profile-update-interval` | int | Update interval in hours |
+| `routing-geo-update-interval` | int | Geo file refresh interval in hours (`0`–`8760`); local choice takes precedence. See [geo auto-update](routing.md#geo-auto-update) |
 | `subscription-userinfo` | string | Traffic statistics and expiration |
 | `support-url` | URL | Support link |
 | `support-email` | email | Support email — shows an "Email" button in the subscription card. Without the header the button is not shown |
@@ -301,9 +304,16 @@ This is a **metadata fragment**, not a complete configuration: add `remarks` to 
 | `hide-url` | `1`/`0`/`true`/`false` | Hide the subscription URL from Share/Copy/QR/backup |
 | `banner-text` | string | Banner text (base64). Overrides the panel |
 | `banner-button-text` | string | Banner button text |
-| `banner-button-url` | URL | Banner button link |
+| `banner-button-url` / `banner-url` | URL | Banner button link |
 | `banner-bg-color` | hex | Banner background color (`#RRGGBB`) |
 | `banner-button-color` | hex | Banner button color (`#RRGGBB`) |
+| `expiry-banner-text` | text / `base64:...` | Banner text (expiry banner) |
+| `expiry-banner-button-text` | text / `base64:...` | Button label (expiry banner) |
+| `expiry-banner-button-url` / `expiry-banner-url` | URL | Button URL (expiry banner) |
+| `expiry-banner-bg-color` | hex `#RRGGBB` | Banner background (expiry banner) |
+| `expiry-banner-button-color` | hex `#RRGGBB` | Button background (expiry banner) |
+| `expiry-banner-text-color` | hex `#RRGGBB` | Banner text color (expiry banner) |
+| `expiry-banner-button-text-color` | hex `#RRGGBB` | Button label color (expiry banner) |
 | `fragmentation-enable` | `1`/`0` | TCP fragmentation |
 | `fragmentation-length` | `min-max` | Fragment length range |
 | `fragmentation-interval` | `min-max` | Delay range between fragments |
@@ -416,3 +426,7 @@ When HWID sending is enabled, additionally:
 ## Fallback hosts
 
 If the primary subscription host is unavailable (network/timeout/5xx/429), the client cycles through fallback hosts — the same path and token, only the host changes. On `404`/`410` (the provider deleted the subscription) no cycling happens. The fallback host list does not arrive via a header — it comes in the premium-config body (`settings.fallbackHosts`) — see [premium-api.md](premium-api.md).
+
+## Subscription URL migration
+
+The HTTP header `new-domain` changes only the host; `new-url` replaces the entire address. Migration is scoped to one subscription and requires verification that the domains belong to the same provider. See [subscription migration](app-management.md#subscription-url-migration) for checks and limitations.

@@ -11,6 +11,8 @@ An extension of the [routing](routing.md) functionality that lets you bind a pro
 | `sourceURL` | Not set | Set — the profile is bound to a URL |
 | Indicator | None | Cloud icon in the profile list |
 
+Geo files have a separate schedule: `routing-geo-update-interval` or the user's choice in the profile editor. Autorouting refreshes the **profile JSON**; this geo interval checks the **existing GeoIP/GeoSite URLs**, even if the profile itself has not changed. See [geo auto-update and retries](routing.md#geo-auto-update).
+
 ## Link types
 
 | Link format | Description |
